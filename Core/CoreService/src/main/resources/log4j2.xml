@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+    <Appenders>
+        <Routing name="Routing">
+            <Routes pattern="$${ctx:module}-$${ctx:type}">
+                <Route key="$${ctx:module}-$${ctx:type}">
+                    <RollingRandomAccessFile
+                        name="RollingRandomAccessFile"
+                        immediateFlush="true"
+                        fileName="logs/default/all.log"
+                        filePattern="tarlogs/default-all-%d{yyyy-MM-dd-hhmmss}.log.gz"
+                    >
+                        <PatternLayout>
+                            <Pattern>[%d] %message%n%xEx{full}</Pattern>
+                        </PatternLayout>
+                        <Policies>
+                            <SizeBasedTriggeringPolicy size="50MB" />
+                        </Policies>
+                        <DefaultRolloverStrategy max="5" />
+                    </RollingRandomAccessFile>
+                </Route>
+                <Route>
+                    <RollingRandomAccessFile
+                        name="RollingRandomAccessFile"
+                        immediateFlush="true"
+                        fileName="logs/${ctx:module}/${ctx:type}.log"
+                        filePattern="tarlogs/${ctx:module}-${ctx:type}-%d{yyyy-MM-dd-hhmmss}.log.gz"
+                    >
+                        <PatternLayout>
+                            <Pattern>[%d] %message%n%xEx{full}</Pattern>
+                        </PatternLayout>
+                        <Policies>
+                            <SizeBasedTriggeringPolicy size="50MB" />
+                        </Policies>
+                        <DefaultRolloverStrategy max="5" />
+                    </RollingRandomAccessFile>
+                </Route>
+            </Routes>
+        </Routing>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="Routing" />
+        </Root>
+    </Loggers>
+</Configuration>

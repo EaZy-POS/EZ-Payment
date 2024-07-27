@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="lap_mst_employe" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="BlankPage" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty" uuid="53ae8597-35ef-4362-96ac-e0e7232f3da1">
+	<property name="ireport.zoom" value="2.415765000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="nama" class="java.lang.String"/>
+	<parameter name="alamat" class="java.lang.String"/>
+	<parameter name="kota" class="java.lang.String"/>
+	<parameter name="kontak" class="java.lang.String"/>
+	<parameter name="logo" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[SELECT 
+denom, 
+description, 
+price_sale, 
+CASE status 
+	WHEN '1' THEN 'Aktif'
+	ELSE 'Tidak Aktif'
+END as status
+FROM `dp_pre_demon` 
+ORDER BY denom ASC]]>
+	</queryString>
+	<field name="denom" class="java.lang.Long">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="description" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="price_sale" class="java.lang.Long">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<field name="status" class="java.lang.String">
+		<fieldDescription><![CDATA[]]></fieldDescription>
+	</field>
+	<variable name="no" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$V{no}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="104" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="80" width="554" height="20" forecolor="#000000" backcolor="#FFFFFF" uuid="c95f31f5-bded-4088-b36b-ef5288031903"/>
+				<staticText>
+					<reportElement x="434" y="2" width="70" height="16" uuid="14f64140-8a66-4bff-af69-6b7939960b45"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Times New Roman" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tanggal Cetak: ]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy">
+					<reportElement x="504" y="2" width="50" height="16" uuid="e79d4ef1-5f72-4db8-a807-238f577e2f4f"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Times New Roman"/>
+						<paragraph leftIndent="2" rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+			</frame>
+			<line>
+				<reportElement x="0" y="100" width="555" height="1" uuid="afb4b22e-4709-4873-a76f-c3f3fc2e3800"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<rectangle>
+				<reportElement x="0" y="0" width="554" height="80" uuid="81a0bbdf-691e-4833-81e3-add205c4c6b6"/>
+				<graphicElement>
+					<pen lineWidth="0.75"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="377" y="53" width="176" height="20" uuid="05d4f353-449c-41bc-a279-fbe83696e5e3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="14" isBold="true"/>
+					<paragraph rightIndent="5"/>
+				</textElement>
+				<text><![CDATA[Denom PLN Prepaid]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="95" y="5" width="303" height="16" uuid="80d2a83e-b6e2-4015-9bcc-96002758a332"/>
+				<textElement>
+					<font fontName="Times New Roman" size="13" isBold="true"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="95" y="22" width="303" height="16" uuid="d589ff3d-cd39-4c88-82b7-bf1ee38a3501"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{alamat}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="95" y="40" width="303" height="16" uuid="d0fd5d47-a052-41a3-9690-20270875dd40"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{kota}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="95" y="57" width="303" height="16" uuid="ad167263-716e-4ae1-9b47-4c3499093007"/>
+				<textElement>
+					<font fontName="Times New Roman" size="12"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{kontak}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="12" y="5" width="70" height="70" uuid="b3a08e49-8cd2-4297-9a91-67b777c9dbff"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="18" splitType="Stretch">
+			<staticText>
+				<reportElement style="Column header" x="0" y="0" width="25" height="14" forecolor="#000000" uuid="c1950dc0-2f4a-4cbf-b234-d4b99a5e27b4"/>
+				<textElement textAlignment="Left">
+					<font size="12" isBold="false"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<text><![CDATA[No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="25" y="0" width="70" height="14" forecolor="#000000" uuid="8eb0ca8c-ce77-4df2-9f09-99431f65e659"/>
+				<textElement textAlignment="Left">
+					<font size="12" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Denom]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="16" width="555" height="1" uuid="11274216-24ff-4311-ba24-6f314464273a"/>
+			</line>
+			<staticText>
+				<reportElement style="Column header" x="96" y="0" width="310" height="14" forecolor="#000000" uuid="ca9e2343-5ea2-42e2-a425-fba72edd7298"/>
+				<textElement textAlignment="Left">
+					<font size="12" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Deskripsi]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="406" y="0" width="95" height="14" forecolor="#000000" uuid="ec334be8-997a-4f0c-bd69-63269d675ad7"/>
+				<textElement textAlignment="Left">
+					<font size="12" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Harga Jual]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="500" y="0" width="55" height="14" forecolor="#000000" uuid="8020ca34-1644-4210-8e2b-c0912f3112f9"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Status]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<frame>
+				<reportElement style="Row" mode="Opaque" x="0" y="0" width="555" height="14" uuid="6c3232b9-00eb-40f3-86e4-06f40c1a19ef"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="0" y="0" width="25" height="14" uuid="ec49e8d3-cf8d-47e6-b111-ffa2543755ef"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{no}.intValue()+new Integer("1")]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="d/M/yyyy">
+					<reportElement style="Detail" positionType="Float" x="25" y="0" width="70" height="14" uuid="db1dc8af-e174-4c29-b0d2-df5689538c5c"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(new java.text.DecimalFormat("#,##0").format(Double.valueOf($F{denom})))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="96" y="0" width="310" height="14" uuid="bec05a03-895d-44e3-a963-4408a13c5288"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement style="Detail" positionType="Float" x="406" y="0" width="95" height="14" uuid="a0da5974-9bab-4387-a86a-8fef5ccb7223"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Rp. "+(new java.text.DecimalFormat("#,##0").format(Double.valueOf($F{price_sale})))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="">
+					<reportElement style="Detail" positionType="Float" x="500" y="0" width="55" height="14" uuid="7ac5785e-6c6f-4545-b673-0f69da80d0c6"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10"/>
+						<paragraph leftIndent="2" rightIndent="5"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="3" width="555" height="16" forecolor="#D0B48E" backcolor="#FFFFFF" uuid="0cb538a8-1072-4d0e-8a31-8476472fcd1f"/>
+				<textField evaluationTime="Report">
+					<reportElement style="Column header" x="513" y="0" width="40" height="16" forecolor="#000000" uuid="770097a0-13d0-4248-8781-de6b838afed0"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="Column header" x="433" y="0" width="80" height="16" forecolor="#000000" uuid="c01229b7-2140-43b7-a09c-80176311ed39"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Hal. "+$V{PAGE_NUMBER}+" dari"]]></textFieldExpression>
+				</textField>
+			</frame>
+			<line>
+				<reportElement x="0" y="0" width="553" height="1" uuid="15f592a1-4e8a-4d45-bdd8-346e1b2d53d8"/>
+			</line>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>D:\Gateway Service\EZSystem\target\EZSystem-1.0.0-SNAPSHOT.jar</jar>
+  <outfile>D:\Gateway Service\EZSystem\ez-service.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>high</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>C:\Users\RCS\Downloads\network-service_25137.ico</icon>
+  <classPath>
+    <mainClass>co.id.ez.system.Main</mainClass>
+    <cp>%EXEDIR%/lib/jersey-container-grizzly2-http-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.inject-api-2.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/grizzly-http-server-3.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/grizzly-http-3.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/grizzly-framework-3.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/jersey-common-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/osgi-resource-locator-1.0.3.jar</cp>
+    <cp>%EXEDIR%/lib/jersey-server-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/jersey-client-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.validation-api-3.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.ws.rs-api-3.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/jersey-hk2-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/hk2-locator-3.0.1.jar</cp>
+    <cp>%EXEDIR%/lib/aopalliance-repackaged-3.0.1.jar</cp>
+    <cp>%EXEDIR%/lib/javassist-3.25.0-GA.jar</cp>
+    <cp>%EXEDIR%/lib/hk2-metadata-generator-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/hk2-api-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/hk2-utils-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.annotation-api-2.0.0.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.activation-api-2.0.1.jar</cp>
+    <cp>%EXEDIR%/lib/jaxb-runtime-2.3.3.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.xml.bind-api-2.3.3.jar</cp>
+    <cp>%EXEDIR%/lib/txw2-2.3.3.jar</cp>
+    <cp>%EXEDIR%/lib/istack-commons-runtime-3.0.11.jar</cp>
+    <cp>%EXEDIR%/lib/jakarta.activation-1.2.2.jar</cp>
+    <cp>%EXEDIR%/lib/jansi-1.18.jar</cp>
+    <cp>%EXEDIR%/lib/CoreService-1.0.0-SNAPSHOT.jar</cp>
+    <cp>%EXEDIR%/lib/log4j-1.2.17.jar</cp>
+    <cp>%EXEDIR%/lib/config-1.3.2.jar</cp>
+    <cp>%EXEDIR%/lib/guava-28.2-android.jar</cp>
+    <cp>%EXEDIR%/lib/failureaccess-1.0.1.jar</cp>
+    <cp>%EXEDIR%/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar</cp>
+    <cp>%EXEDIR%/lib/jsr305-3.0.2.jar</cp>
+    <cp>%EXEDIR%/lib/checker-compat-qual-2.5.5.jar</cp>
+    <cp>%EXEDIR%/lib/error_prone_annotations-2.3.4.jar</cp>
+    <cp>%EXEDIR%/lib/j2objc-annotations-1.3.jar</cp>
+    <cp>%EXEDIR%/lib/log4j-api-2.21.1.jar</cp>
+    <cp>%EXEDIR%/lib/log4j-core-2.21.1.jar</cp>
+    <cp>%EXEDIR%/lib/log4j-1.2-api-2.13.1.jar</cp>
+    <cp>%EXEDIR%/lib/log4j-slf4j-impl-2.13.1.jar</cp>
+    <cp>%EXEDIR%/lib/slf4j-api-1.7.25.jar</cp>
+    <cp>%EXEDIR%/lib/disruptor-3.4.2.jar</cp>
+    <cp>%EXEDIR%/lib/Database-1.0.0-SNAPSHOT.jar</cp>
+    <cp>%EXEDIR%/lib/HikariCP-3.3.1.jar</cp>
+    <cp>%EXEDIR%/lib/json-20130418.jar</cp>
+  </classPath>
+  <jre>
+    <path>%EXEDIR%</path>
+    <requiresJdk>false</requiresJdk>
+    <requires64Bit>false</requires64Bit>
+    <minVersion>1.8.0</minVersion>
+    <maxVersion></maxVersion>
+    <initialHeapSize>512</initialHeapSize>
+    <maxHeapSize>1024</maxHeapSize>
+  </jre>
+  <versionInfo>
+    <fileVersion>1.0.0.0</fileVersion>
+    <txtFileVersion>1.1.0.0</txtFileVersion>
+    <fileDescription>BackEnd Service</fileDescription>
+    <copyright>@VoltaSystem</copyright>
+    <productVersion>1.0.0.0</productVersion>
+    <txtProductVersion>1.0.0.0</txtProductVersion>
+    <productName>ez-service</productName>
+    <companyName>EZ System</companyName>
+    <internalName>Pulsa Kita</internalName>
+    <originalFilename>ez-service.exe</originalFilename>
+    <trademarks></trademarks>
+    <language>ENGLISH_US</language>
+  </versionInfo>
+  <messages>
+    <startupErr>An error occurred while starting the application.</startupErr>
+    <jreNotFoundErr>This application requires a Java Runtime Environment.</jreNotFoundErr>
+    <jreVersionErr>This application requires a Java Runtime Environment</jreVersionErr>
+    <launcherErr>The registry refers to a nonexistent Java Runtime Environment installation or the runtime is corrupted.</launcherErr>
+    <instanceAlreadyExistsMsg>An application instance is already running.</instanceAlreadyExistsMsg>
+  </messages>
+</launch4jConfig>
