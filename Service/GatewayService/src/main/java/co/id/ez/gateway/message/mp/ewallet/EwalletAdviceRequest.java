@@ -14,10 +14,6 @@ import co.id.ez.gateway.message.mp.MPAdviceRequest;
  */
 public class EwalletAdviceRequest extends MPAdviceRequest{
     
-    public EwalletAdviceRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-    
     @Override
     public String getMessageStream() {
         return super.getBasicMessageStream() + "&nohp=" + getInput1() + "&produk=" + getBiller()
@@ -27,5 +23,15 @@ public class EwalletAdviceRequest extends MPAdviceRequest{
     @Override
     public String getRemarks() {
         return super.getRemarks("Pembayaran") + " destnum " + getInput1() + "(" + getBiller() + ")";
+    }
+    
+    @Override
+    public String getModule() {
+        return "ewallet";
+    }
+    
+    @Override
+    public String getComand() {
+        return "ADV";
     }
 }

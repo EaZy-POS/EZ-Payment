@@ -7,12 +7,13 @@ package co.id.ez.gateway.message.prepaid;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PlnPrepaidAdviceRequest extends PlnPrepaidPaymentRequest{
     
-    public PlnPrepaidAdviceRequest(String comand, String modul) {
-        super(comand, modul);
+    @Override
+    public String getComand() {
+        return "ADV";
     }
 
 }

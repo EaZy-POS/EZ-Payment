@@ -16,9 +16,6 @@ import java.util.UUID;
  */
 public class VoucherInquiryRequest extends BillerRequest{
     private String tujuan, voucherId;
-    public VoucherInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     public String getTujuan() {
         return tujuan;
@@ -67,4 +64,18 @@ public class VoucherInquiryRequest extends BillerRequest{
         return super.getRemarks() + " tujuan "+ tujuan +"("+voucherId+")"; 
     }
 
+    @Override
+    public String getModuleCode() {
+        return "VCR";
+    }
+
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
+
+    @Override
+    public String getModule() {
+        return "ISI";
+    }
 }

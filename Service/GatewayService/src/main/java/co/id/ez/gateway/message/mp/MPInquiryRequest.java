@@ -7,18 +7,14 @@ package co.id.ez.gateway.message.mp;
 
 import co.id.ez.gateway.message.BillerRequest;
 
-
 /**
  *
- * @author RCS
+ * @author lutfi
  */
-public class MPInquiryRequest extends BillerRequest{
+public class MPInquiryRequest extends BillerRequest {
+
     private String input1, input2, input3;
     private String biller;
-    
-    public MPInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     public String getInput1() {
         return input1;
@@ -54,14 +50,29 @@ public class MPInquiryRequest extends BillerRequest{
 
     @Override
     public String getMessageStream() {
-        return super.getMessageStream()+ "&input1=" + input1 +"&biller="+biller 
+        return super.getMessageStream() + "&input1=" + input1 + "&biller=" + biller
                 + (input2 != null ? input2.equals("") ? "&input2=" + input2 : "" : "")
                 + (input3 != null ? input3.equals("") ? "&input3=" + input3 : "" : "");
     }
-    
+
     @Override
     public String getRemarks() {
-        return super.getRemarks() + " idpel "+ input1 +"("+biller+")"; 
+        return super.getRemarks() + " idpel " + input1 + "(" + biller + ")";
     }
-    
+
+    @Override
+    public String getModuleCode() {
+        return "MTP";
+    }
+
+    @Override
+    public String getModule() {
+        return "gp";
+    }
+
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
+
 }

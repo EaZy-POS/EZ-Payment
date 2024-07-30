@@ -15,6 +15,7 @@ import co.id.ez.gateway.message.pdam.PdamAdviceRequest;
 import co.id.ez.gateway.message.pdam.PdamInquiryRequest;
 import co.id.ez.gateway.message.pdam.PdamPaymentRequest;
 import co.id.ez.gateway.resource.MessageHandler;
+import co.id.ez.gateway.resource.MessageType;
 import co.id.ez.gateway.util.enums.RequiredFields;
 import co.id.ez.gateway.util.enums.TableName;
 import co.id.ez.gateway.util.enums.tables.PdamTable;
@@ -36,7 +37,7 @@ import java.util.LinkedList;
 
 /**
  *
- * @author RCS
+ * @author Lutfi
  */
 @Path("")
 public class PDAMPlugin extends MessageHandler{
@@ -63,17 +64,17 @@ public class PDAMPlugin extends MessageHandler{
     }
     
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        if(request.getString("command").equalsIgnoreCase("INQ")){
-            PdamInquiryRequest inqRequest = new PdamInquiryRequest(request.getString("command"), request.getString("modul"));
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMessageType) {
+        if(pMessageType == MessageType.INQUIRY){
+            PdamInquiryRequest inqRequest = new PdamInquiryRequest();
             inqRequest.setIdpel(request.getString("idpel"));
             inqRequest.setBiller(request.getString("biller"));
             inqRequest.setDetail(request.getBoolean("detail"));
             return inqRequest;
         }
         
-        if(request.getString("command").equalsIgnoreCase("PAY")){
-            PdamPaymentRequest payRequest = new PdamPaymentRequest(request.getString("command"), request.getString("modul"));
+        if(pMessageType == MessageType.PAYMENT){
+            PdamPaymentRequest payRequest = new PdamPaymentRequest();
             payRequest.setIdpel(request.getString("idpel"));
             payRequest.setBiller(request.getString("biller"));
             payRequest.setDetail(request.getBoolean("detail"));
@@ -81,8 +82,8 @@ public class PDAMPlugin extends MessageHandler{
             return payRequest;
         }
         
-        if(request.getString("command").equalsIgnoreCase("ADV")){
-            PdamAdviceRequest advRequest = new PdamAdviceRequest(request.getString("command"), request.getString("modul"));
+        if(pMessageType == MessageType.ADVICE){
+            PdamAdviceRequest advRequest = new PdamAdviceRequest();
             advRequest.setIdpel(request.getString("idpel"));
             advRequest.setBiller(request.getString("biller"));
             advRequest.setDetail(request.getBoolean("detail"));
@@ -119,7 +120,7 @@ public class PDAMPlugin extends MessageHandler{
             
             tBuilder.addEntryValue(PdamTable.id.name(), "UUID()", true);
             tBuilder.addEntryValue(PdamTable.transaction_date.name(), "NOW()", true);
-            tBuilder.addEntryValue(PdamTable.biller.name(), reqMap.getBiller());
+            tBuilder.addEntryValue(PdamTable.biller.name(), reqMap.getProduct());
             tBuilder.addEntryValue(PdamTable.detail.name(), reqMap.isDetail() ? "1": "0");
             tBuilder.addEntryValue(PdamTable.mitra_id.name(), reqMap.getClient_id());
             tBuilder.addEntryValue(PdamTable.module_id.name(), reqMap.getModule_id());
@@ -207,13 +208,18 @@ public class PDAMPlugin extends MessageHandler{
     }
     
     @Override
-    public LinkedList<JSONObject> validateMessage(@Context HttpHeaders pHeaders, JSONObject request, RequiredFields requiredField, TableName pTranmainTable) {
+    public LinkedList<JSONObject> validateMessage(
+            @Context HttpHeaders pHeaders, 
+            JSONObject request, 
+            RequiredFields requiredField, 
+            TableName pTranmainTable,
+            MessageType pMsgType) {
         
-        LinkedList<JSONObject> tTranmain = super.validateMessage(pHeaders, request, requiredField, pTranmainTable);
+        LinkedList<JSONObject> tTranmain = super.validateMessage(pHeaders, request, requiredField, pTranmainTable, pMsgType);
         
-        if (request.getString("command").equals("INQ")) {
+        if (pMsgType == MessageType.INQUIRY) {
             String biller = request.getString("biller");
-            reqMap.setBiller(biller);
+            reqMap.setProduct(biller);
             reqMap.setDetail(request.getBoolean("detail"));
         }
         
@@ -225,4 +231,8 @@ public class PDAMPlugin extends MessageHandler{
         return new BigDecimal(pRequest.getDouble("amount"));
     }
 
+    @Override
+    public String getProduct(JSONObject pRequest) {
+        return pRequest.getString("biller");
+    }
 }

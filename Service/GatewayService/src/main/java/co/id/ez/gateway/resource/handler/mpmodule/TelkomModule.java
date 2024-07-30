@@ -9,6 +9,7 @@ import co.id.ez.gateway.message.BillerRequest;
 import co.id.ez.gateway.message.mp.telkom.TelkomAdviceRequest;
 import co.id.ez.gateway.message.mp.telkom.TelkomInquiryRequest;
 import co.id.ez.gateway.message.mp.telkom.TelkomPaymentRequest;
+import co.id.ez.gateway.resource.MessageType;
 import com.json.JSONObject;
 import java.math.BigDecimal;
 
@@ -23,23 +24,23 @@ public class TelkomModule extends MPModule{
     }
 
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        if(request.getString("command").equalsIgnoreCase("INQ")){
-            TelkomInquiryRequest inqRequest = new TelkomInquiryRequest(request.getString("command"), request.getString("modul"));
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType) {
+        if(pMsgType == MessageType.INQUIRY){
+            TelkomInquiryRequest inqRequest = new TelkomInquiryRequest();
             inqRequest.setInput1(request.getString("input1"));
             return inqRequest;
         }
         
-        if(request.getString("command").equalsIgnoreCase("PAY")){
-            TelkomPaymentRequest inqRequest = new TelkomPaymentRequest(request.getString("command"), request.getString("modul"));
+        if(pMsgType == MessageType.PAYMENT){
+            TelkomPaymentRequest inqRequest = new TelkomPaymentRequest();
             inqRequest.setInput1(request.getString("input1"));
             inqRequest.setTrxid(request.getString("trxid"));
             inqRequest.setAmount(request.get("amount").toString());
             return inqRequest;
         }
         
-        if(request.getString("command").equalsIgnoreCase("ADV")){
-            TelkomAdviceRequest inqRequest = new TelkomAdviceRequest(request.getString("command"), request.getString("modul"));
+        if(pMsgType == MessageType.ADVICE){
+            TelkomAdviceRequest inqRequest = new TelkomAdviceRequest();
             inqRequest.setInput1(request.getString("input1"));
             inqRequest.setTrxid(request.getString("trxid"));
             inqRequest.setAmount(request.get("amount").toString());

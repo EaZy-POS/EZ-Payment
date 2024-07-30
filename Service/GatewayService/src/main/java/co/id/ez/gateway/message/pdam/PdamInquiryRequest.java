@@ -9,17 +9,13 @@ import co.id.ez.gateway.message.BillerRequest;
 
 /**
  *
- * @author RCS
+ * @author Lutfi
  */
 public class PdamInquiryRequest extends BillerRequest{
     private String idpel;
     private String biller;
     private boolean detail;
     
-    public PdamInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-
     public String getIdpel() {
         return idpel;
     }
@@ -53,5 +49,20 @@ public class PdamInquiryRequest extends BillerRequest{
     @Override
     public String getRemarks() {
         return super.getRemarks() + " idpel "+ idpel +"("+biller+")"; 
+    }
+
+    @Override
+    public String getModuleCode() {
+        return "PAM";
+    }
+    
+    @Override
+    public String getModule() {
+        return "pdam";
+    }
+    
+    @Override
+    public String getComand() {
+        return "INQ";
     }
 }

@@ -64,9 +64,9 @@ public abstract class MessageHandler extends CommonHanlder {
 
             tJsonRequest = new JSONObject(tRequest);
 
-            validateMessage(pHeaders, tJsonRequest, pRequiredField, pTranmain);
+            validateMessage(pHeaders, tJsonRequest, pRequiredField, pTranmain, MessageType.INQUIRY);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"),
+                    MessageType.INQUIRY.get(),
                     "REQ",
                     corelation_id,
                     reqMap,
@@ -75,7 +75,7 @@ public abstract class MessageHandler extends CommonHanlder {
                     )
             );
 
-            BillerRequest inqReq = constructBillerRequest(tJsonRequest);
+            BillerRequest inqReq = constructBillerRequest(tJsonRequest, MessageType.INQUIRY);
 
             String tResponseString = sendGetHttpRequest(inqReq, reqMap);
             RC tRC;
@@ -100,7 +100,7 @@ public abstract class MessageHandler extends CommonHanlder {
             Response tResp = constructHttpResponse(tRC, res);
             
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.INQUIRY.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -139,7 +139,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.INQUIRY.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -161,7 +161,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.INQUIRY.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -204,10 +204,10 @@ public abstract class MessageHandler extends CommonHanlder {
 
             tJsonRequest = new JSONObject(tRequest);
 
-            validateMessage(pHeaders, tJsonRequest, pRequiredField, pTranmain);
+            validateMessage(pHeaders, tJsonRequest, pRequiredField, pTranmain, MessageType.PAYMENT);
 
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "REQ", 
                     corelation_id, 
                     reqMap, 
@@ -215,7 +215,7 @@ public abstract class MessageHandler extends CommonHanlder {
                     String.valueOf(getId())
             );
             
-            payReq = constructBillerRequest(tJsonRequest);
+            payReq = constructBillerRequest(tJsonRequest, MessageType.PAYMENT);
             isDeductedDeposit = sendDeposit(tJsonRequest, payReq, "D");
             String tResponseString = sendGetHttpRequest(payReq, reqMap);
             RC tRC;
@@ -258,7 +258,7 @@ public abstract class MessageHandler extends CommonHanlder {
             Response tResp = constructHttpResponse(tRC, res);
             
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -301,7 +301,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -330,7 +330,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -372,9 +372,9 @@ public abstract class MessageHandler extends CommonHanlder {
 
             tJsonRequest = new JSONObject(tRequest);
 
-            LinkedList<JSONObject> tTranmain = validateMessage(pHeaders, tJsonRequest, pRequiredField, pTranmain);
+            LinkedList<JSONObject> tTranmain = validateMessage(pHeaders, tJsonRequest, pRequiredField, pTranmain, MessageType.ADVICE);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "REQ", 
                     corelation_id, 
                     reqMap, 
@@ -382,7 +382,7 @@ public abstract class MessageHandler extends CommonHanlder {
                     String.valueOf(getId())
             );
 
-            advReq = constructBillerRequest(tJsonRequest);
+            advReq = constructBillerRequest(tJsonRequest, MessageType.ADVICE);
             JSONObject res;
             
             if (tTranmain.getFirst().getInt("flag") == 0) {
@@ -433,7 +433,7 @@ public abstract class MessageHandler extends CommonHanlder {
             Response tResp = constructHttpResponse(tRC, res);
             
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -473,7 +473,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -501,7 +501,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             Repository.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 

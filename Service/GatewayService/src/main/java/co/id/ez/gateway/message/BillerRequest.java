@@ -6,6 +6,7 @@
 package co.id.ez.gateway.message;
 
 import co.id.ez.gateway.resource.CommonHanlder;
+import co.id.ez.gateway.util.IDGenerator;
 import co.id.ez.system.core.config.ConfigService;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -13,54 +14,53 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
- * @author RCS
+ * @author Lutfi
  */
 public abstract class BillerRequest {
-    private String comand, modul;
+
     private final String cid, date, resp;
     private String hcode, trxid;
-    
-    public String contructSimulatorResponse(){
+
+    public String contructSimulatorResponse() {
         return null;
     }
     
-    public BillerRequest(String comand, String modul) {
-        this.comand = comand;
-        this.modul = modul;
-
+    public abstract String getModule();
+    public abstract String getModuleCode();
+    public abstract String getComand();
+    
+    public BillerRequest() {
         cid = ConfigService.getInstance().getString(CommonHanlder.cMessageKey + CommonHanlder.cCIDKey);
         String tSkey = ConfigService.getInstance().getString(CommonHanlder.cMessageKey + CommonHanlder.cSkeyKey);
         resp = ConfigService.getInstance().getString(CommonHanlder.cMessageKey + CommonHanlder.cResponseKey);
         date = new SimpleDateFormat("yyyyMMdd").format(new Date());
         trxid = generateTrxID();
+        
         try {
             hcode = getHC(cid, date, tSkey);
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalArgumentException("Error Hashing message. ", ex);
         }
     }
-    
-    private static String generateTrxID(){
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
+
+    private String generateTrxID() {
+        return IDGenerator.get(getModuleCode());
     }
-    
-    private static String getHC(String tCid, String date, String skey) throws NoSuchAlgorithmException{
-        String value = toHexString(getSHA(tCid+date+skey));
+
+    private String getHC(String tCid, String date, String skey) throws NoSuchAlgorithmException {
+        String value = toHexString(getSHA(tCid + date + skey));
         return value;
     }
-    
-    private static byte[] getSHA(String input) throws NoSuchAlgorithmException {
+
+    private byte[] getSHA(String input) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         return md.digest(input.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static String toHexString(byte[] hash) {
+    private String toHexString(byte[] hash) {
         BigInteger number = new BigInteger(1, hash);
         StringBuilder hexString = new StringBuilder(number.toString(16));
         while (hexString.length() < 64) {
@@ -73,7 +73,7 @@ public abstract class BillerRequest {
     public void setTrxid(String trxid) {
         this.trxid = trxid;
     }
-    
+
     public String getTrxid() {
         return trxid;
     }
@@ -98,25 +98,9 @@ public abstract class BillerRequest {
         this.hcode = hcode;
     }
 
-    public String getComand() {
-        return comand;
-    }
-
-    public void setComand(String comand) {
-        this.comand = comand;
-    }
-
-    public String getModul() {
-        return modul;
-    }
-
-    public void setModul(String modul) {
-        this.modul = modul;
-    }
-    
-    public String getBasicMessageStream(){
-        return "command=" + comand + "&modul=" + modul +"&trxid="+trxid
-                + "&cid=" + cid + "&dt=" + date 
+    public String getBasicMessageStream() {
+        return "command=" + getComand() + "&modul=" + getModule() + "&trxid=" + trxid
+                + "&cid=" + cid + "&dt=" + date
                 + "&resp=" + resp + "&hc=" + hcode;
     }
 
@@ -124,19 +108,12 @@ public abstract class BillerRequest {
         return getBasicMessageStream();
     }
 
-    public String getRemarks(){
+    public String getRemarks() {
         return getRemarks("Pembayaran");
     }
-    
-    public String getRemarks(String pPrefix){
-        return pPrefix+" "+ getModul()+" "+ getTrxid();
+
+    public String getRemarks(String pPrefix) {
+        return pPrefix + " " + getModule()+ " " + getTrxid();
     }
     
-    public static void main(String[] args) {
-        try {
-            System.out.println(getHC("dev6ffacfed-6293-11e6-8325-3nGsysT3m", "20240215", "@4k5e53nGsysT3m"));
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(BillerRequest.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }

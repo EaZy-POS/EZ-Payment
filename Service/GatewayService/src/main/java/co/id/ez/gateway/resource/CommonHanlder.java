@@ -38,6 +38,7 @@ import org.testcontainers.shaded.okhttp3.OkHttpClient;
 import org.testcontainers.shaded.okhttp3.Request;
 import org.testcontainers.shaded.okhttp3.RequestBody;
 import org.testcontainers.shaded.okhttp3.Response;
+import org.testcontainers.shaded.org.apache.commons.lang.time.DateUtils;
 
 /**
  *
@@ -58,7 +59,7 @@ public abstract class CommonHanlder extends Thread {
     public static String cIsSimulator = cModuleNamespace + "is-simulator";
     public static String cAuthKey = "auth";
     public static String cDepJournalKey = "dep-journal";
-    
+
     public static String cCidKey = "cid";
     public static String cdtKey = "dt";
     public static String cHcKey = "hc";
@@ -70,20 +71,26 @@ public abstract class CommonHanlder extends Thread {
     public static String cInput1Key = "input1";
     public static String cInput2Key = "input2";
     public static String cInput3Key = "input3";
-    
+
     protected String corelation_id;
     protected RequestMapping reqMap;
-    
+
     @Context
     public UriInfo uriInfo;
-    
-    public abstract BillerRequest constructBillerRequest(JSONObject request);
+
+    public abstract BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType);
+
     public abstract void validateTransactAmount(JSONObject request, LinkedList<JSONObject> pTranmainDB);
+
     public abstract void insertSuccessfullResponseToTranmain(JSONObject response);
+
     public abstract void updateSuccessfullResponseToTranmain(JSONObject response);
+
     public abstract BigDecimal getTransactAmount(JSONObject pRequest);
-    
-    public Object getMitraAmount(JSONObject request){
+
+    public abstract String getProduct(JSONObject pRequest);
+
+    public Object getMitraAmount(JSONObject request) {
         return null;
     }
 
@@ -91,32 +98,40 @@ public abstract class CommonHanlder extends Thread {
         JSONObject resp = constructErrorResponse(null, rc, rcm);
         return resp;
     }
-    
+
     public JSONObject constructErrorResponse(RC rc, String rcm) {
         JSONObject resp = constructErrorResponse(null, rc, rcm);
         return resp;
     }
-    
+
     public JSONObject constructErrorResponse(JSONObject request, String rc, String rcm) {
-        JSONObject resp = request == null ? new JSONObject() : request ;
+        JSONObject resp = request == null ? new JSONObject() : request;
         resp.put("rc", rc);
         resp.put("rcm", rcm);
 
         return resp;
     }
-    
+
     public JSONObject constructErrorResponse(JSONObject request, RC rc, String rcm) {
-        JSONObject resp = request == null ? new JSONObject() : request ;
+        JSONObject resp = request == null ? new JSONObject() : request;
         resp.put("rc", rc.getResponseCodeString());
         resp.put("rcm", rcm);
 
         return resp;
     }
-    
-    public LinkedList<JSONObject> validateMessage(@Context HttpHeaders pHeaders, JSONObject request, RequiredFields requiredField, TableName pTranmainTable) {
+
+    public LinkedList<JSONObject> validateMessage(
+            @Context HttpHeaders pHeaders,
+            JSONObject request,
+            RequiredFields requiredField,
+            TableName pTranmainTable,
+            MessageType pMsgType) {
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate message");
 
         reqMap = validateHeader(pHeaders);
+
+        reqMap.setProduct(getProduct(request));
+
         validateUser(reqMap);
         LinkedList<JSONObject> tTranmain = null;
 
@@ -126,35 +141,35 @@ public abstract class CommonHanlder extends Thread {
         });
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate mandatory field (success)");
 
-        if (!request.getString("command").equals("INQ")) {
+        if (pMsgType != MessageType.INQUIRY) {
             LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate numeric amount");
             Object downAmount = getMitraAmount(request);
-            
-            if(downAmount != null){
+
+            if (downAmount != null) {
                 try {
                     Double.parseDouble(downAmount.toString());
                 } catch (NumberFormatException e) {
-                    throw new ServiceException(RC.ERROR_INVALID_TRANSACTION_AMOUNT, 
-                            "Invalid format for transact amount: ["+downAmount+"]");
+                    throw new ServiceException(RC.ERROR_INVALID_TRANSACTION_AMOUNT,
+                            "Invalid format for transact amount: [" + downAmount + "]");
                 }
             }
-            
+
             LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate numeric amount (success)");
-            
+
             LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate with tranmain");
             tTranmain = validateWithTranmain(request, pTranmainTable.get());
             LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate with tranmain (success)");
 
-            if (request.getString("command").equals("PAY")) {
-                
-                if(tTranmain.getFirst().getInt("flag") == 1){
+            if (pMsgType == MessageType.PAYMENT) {
+
+                if (tTranmain.getFirst().getInt("flag") == 1) {
                     throw new ServiceException(RC.ERROR_BILL_ALREADY_PAID, "Transaction has been paid");
                 }
-                
-                if(tTranmain.getFirst().getInt("flag") > 1){
+
+                if (tTranmain.getFirst().getInt("flag") > 1) {
                     throw new ServiceException(RC.ERROR_REQUEST_IS_BEING_PROCESSED, "Transaction has been processing");
                 }
-                
+
                 LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate request time");
                 validateRequestTime(tTranmain);
                 LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate request time (success)");
@@ -183,7 +198,15 @@ public abstract class CommonHanlder extends Thread {
             Date curTime = format.parse(reqTime);
             Date tarTime = format.parse(inqTime);
 
-            if ((((curTime.getTime() - tarTime.getTime()) / 1000) / 60) > 5) {
+            if (tarTime.after(curTime)) {
+                tarTime = DateUtils.addHours(tarTime, -7);
+            }
+
+            LogService.getInstance(this).trace().log("(" + corelation_id + ") Validate Request Time, req time: " + reqTime + " between inquiry time: " + tarTime);
+            long delay = (Math.abs(curTime.getTime() - tarTime.getTime()) / (1000 * 60)) % 60;
+            LogService.getInstance(this).trace().log("(" + corelation_id + ") request time delay: " + delay);
+
+            if (delay > 5) {
                 throw new ServiceException(RC.ERROR_INVALID_ACCESS_TIME, "Request has been Expired, please try again!");
             }
         } catch (ParseException ex) {
@@ -239,7 +262,8 @@ public abstract class CommonHanlder extends Thread {
         validateMitra(tHeaderClientID, tHeaderproduct);
         String[] tUserData = validateAuth(tHeaderAuth, tHeaderMitraKey);
 
-        RequestMapping reqMaps = new RequestMapping(tHeaderClientID.get(0),
+        RequestMapping reqMaps = new RequestMapping(
+                tHeaderClientID.get(0),
                 tHeaderproduct.get(0),
                 tHeaderMitraKey.get(0),
                 tHeaderAuth.get(0),
@@ -279,7 +303,7 @@ public abstract class CommonHanlder extends Thread {
         String tBaseUrl = pUrl;
         int timeout = ConfigService.getInstance().getInt(cUrlKey + cTimeOutKey);
 
-        LogService.getInstance(this).stream().log((pServiceName.toUpperCase()) +" REQUEST to HTTP ("+corelation_id+"): {} body: [{}]", tBaseUrl, pRequest.toString());
+        LogService.getInstance(this).stream().log((pServiceName.toUpperCase()) + " REQUEST to HTTP (" + corelation_id + "): {} body: [{}]", tBaseUrl, pRequest.toString());
 
         try {
             OkHttpClient client = new OkHttpClient().newBuilder()
@@ -287,7 +311,7 @@ public abstract class CommonHanlder extends Thread {
                     .writeTimeout(5, TimeUnit.SECONDS)
                     .connectTimeout(timeout, TimeUnit.MILLISECONDS)
                     .build();
-            
+
             MediaType mediaType = MediaType.parse("application/json");
             RequestBody body = RequestBody.create(mediaType, pRequest.toString());
             Request httpRequest = new Request.Builder()
@@ -300,30 +324,30 @@ public abstract class CommonHanlder extends Thread {
                     .build();
 
             Response response = client.newCall(httpRequest).execute();
-            LogService.getInstance(this).trace().log("Response ("+corelation_id+"): {} ", response);
+            LogService.getInstance(this).trace().log("Response (" + corelation_id + "): {} ", response);
             tResponse = response.body().string();
         } catch (IOException e) {
             throw new ServiceException(RC.ERROR_TRANSACTION_FAILED_FROM_VENDING, "Error Response from biller. ", e);
         }
 
-        LogService.getInstance(this).stream().log((pServiceName.toUpperCase()) +" RESPONSE from HTTP ("+corelation_id+"): {} [{}] ", tBaseUrl, tResponse);
+        LogService.getInstance(this).stream().log((pServiceName.toUpperCase()) + " RESPONSE from HTTP (" + corelation_id + "): {} [{}] ", tBaseUrl, tResponse);
 
         return tResponse;
     }
-    
+
     public String sendGetHttpRequest(BillerRequest request, RequestMapping reqMap) {
         HttpURLConnection tCon;
         String tResponse = "";
-        
+
         String tBaseUrl = ConfigService.getInstance().getString(cUrlKey + cPathKey);
         tBaseUrl = tBaseUrl.concat(request.getMessageStream());
         int timeout = ConfigService.getInstance().getInt(cUrlKey + cTimeOutKey);
         boolean isSimulator = ConfigService.getInstance().getBoolean(cIsSimulator, false);
-        
+
         try {
             LogService.getInstance(this).stream().log("Biller REQUEST to HTTP (" + corelation_id + "):[{}] {}", (isSimulator ? "simulator" : ""), tBaseUrl);
             Repository.logMessage(request.getComand(), "REQ", corelation_id, request.getTrxid(), reqMap, tBaseUrl, String.valueOf(getId()));
-            
+
             if (isSimulator) {
                 tResponse = request.contructSimulatorResponse();
             } else {
@@ -364,23 +388,23 @@ public abstract class CommonHanlder extends Thread {
                     .getInstance(this)
                     .error()
                     .withCause(e)
-                    .log("("+corelation_id+") [IOException] Error No Response from biller. ", true);
+                    .log("(" + corelation_id + ") [IOException] Error No Response from biller. ", true);
         }
-        
+
         LogService.getInstance(this)
                 .stream()
-                .log("Biller RESPONSE from HTTP (" + corelation_id + "): {}[{}] [{}] ", 
-                        tBaseUrl, 
-                        (isSimulator ? "simulator" : ""), 
+                .log("Biller RESPONSE from HTTP (" + corelation_id + "): {}[{}] [{}] ",
+                        tBaseUrl,
+                        (isSimulator ? "simulator" : ""),
                         tResponse
                 );
         Repository.logMessage(
-                request.getComand(), 
-                "RES", 
-                corelation_id, 
-                request.getTrxid(), 
-                reqMap, 
-                tResponse, 
+                request.getComand(),
+                "RES",
+                corelation_id,
+                request.getTrxid(),
+                reqMap,
+                tResponse,
                 String.valueOf(getId()
                 )
         );
@@ -398,47 +422,47 @@ public abstract class CommonHanlder extends Thread {
                 .replace("\"", "\\\"");
     }
 
-    public JSONObject constructSuccessfullResponse(JSONObject pRequest, String pResponse){
+    public JSONObject constructSuccessfullResponse(JSONObject pRequest, String pResponse) {
         JSONObject tResp = new JSONObject(pResponse);
         pRequest.keySet().stream().map(keys -> {
             return keys;
         }).filter(keys -> (!tResp.has(keys.toString()))).forEachOrdered(keys -> {
             tResp.put(keys.toString(), pRequest.get(keys.toString()));
         });
-        
+
         return tResp;
     }
-    
-    public JSONObject validateUser(RequestMapping reqMap){
+
+    public JSONObject validateUser(RequestMapping reqMap) {
         LogService.getInstance(this).trace().log("Before validate user");
         String pAuthUrl = ConfigService.getInstance().getString(cUrlKey + cAuthKey, "http://127.0.0.1:6566/api/auth/validate");
-        
+
         String tAuthResponse = sendPostRequest(reqMap.getAuthRequest(), pAuthUrl, "AUTH-SERVICE");
-        
-        if(!tAuthResponse.equals("") && tAuthResponse.startsWith("{")){
+
+        if (!tAuthResponse.equals("") && tAuthResponse.startsWith("{")) {
             JSONObject tResponse = new JSONObject(tAuthResponse);
             String tRc = tResponse.getString("rc").substring(3);
             if (tRc.equals("0000")) {
                 LogService.getInstance(this).trace().log("Afetr validate user (success)");
                 return tResponse;
-            }else{
+            } else {
                 LogService.getInstance(this).trace().log("After validate user (failed)");
                 throw new ServiceException(RC.parseResponseCodeString(tRc), tResponse.getString("rcm"));
             }
         }
         LogService.getInstance(this).trace().log("After validate user (failed)");
-        throw new ServiceException(RC.ERROR_OTHER, "Get null/empty response from auth. ["+ tAuthResponse+"]");
+        throw new ServiceException(RC.ERROR_OTHER, "Get null/empty response from auth. [" + tAuthResponse + "]");
     }
 
-    public boolean sendDeposit(JSONObject pRequest, BillerRequest message, String pJournal){
+    public boolean sendDeposit(JSONObject pRequest, BillerRequest message, String pJournal) {
         return sendDeposit(pRequest, message, pJournal, "Pembayaran");
     }
-    
-    public boolean sendDeposit(JSONObject pRequest, BillerRequest message, String pJournal, String pPrefix){
+
+    public boolean sendDeposit(JSONObject pRequest, BillerRequest message, String pJournal, String pPrefix) {
         if (reqMap != null) {
             if (reqMap.getTranmaindata().getFirst().getInt("flag") == 0) {
                 JSONObject tDepReq = reqMap.getJournalRequest(
-                        pJournal, 
+                        pJournal,
                         pRequest.getString(Fields.trxid.name()),
                         message.getRemarks(pPrefix),
                         getTransactAmount(pRequest)
@@ -456,15 +480,15 @@ public abstract class CommonHanlder extends Thread {
                         LogService.getInstance(this).trace().log("After send request to deposit (failed)");
                         throw new ServiceException(RC.parseResponseCodeString(tRc), tResponse.getString("rcm"));
                     }
-                    
+
                     return true;
                 }
-                
+
                 LogService.getInstance(this).trace().log("Before send request to deposit (failed)");
                 throw new ServiceException(RC.ERROR_OTHER, "Get null/empty response from auth. [" + tAuthResponse + "]");
             }
         }
-        
+
         return false;
     }
 }

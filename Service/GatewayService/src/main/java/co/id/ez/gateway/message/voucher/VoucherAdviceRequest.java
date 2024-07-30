@@ -11,8 +11,9 @@ package co.id.ez.gateway.message.voucher;
  */
 public class VoucherAdviceRequest extends VoucherPaymentRequest{
     
-    public VoucherAdviceRequest(String comand, String modul) {
-        super(comand, modul);
+    @Override
+    public String getComand() {
+        return "ADV";
     }
     
 }

@@ -9,13 +9,9 @@ import co.id.ez.gateway.message.mp.MPPaymentRequest;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class TelkomPaymentRequest extends MPPaymentRequest {
-
-    public TelkomPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     @Override
     public String getMessageStream() {
@@ -25,6 +21,16 @@ public class TelkomPaymentRequest extends MPPaymentRequest {
     @Override
     public String getRemarks() {
         return super.getRemarks("Pembayaran") + " nopel " + getInput1() + "(Telkom)";
+    }
+    
+    @Override
+    public String getModule() {
+        return "ph";
+    }
+    
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
 }

@@ -7,15 +7,12 @@ package co.id.ez.gateway.message.mp;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
-public class MPPaymentRequest extends MPInquiryRequest{
+public class MPPaymentRequest extends MPInquiryRequest {
+
     private String amount;
-    
-    public MPPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-    
+
     public String getAmount() {
         return amount;
     }
@@ -26,7 +23,11 @@ public class MPPaymentRequest extends MPInquiryRequest{
 
     @Override
     public String getMessageStream() {
-        return super.getMessageStream()+ "&amount=" + amount;
+        return super.getMessageStream() + "&amount=" + amount;
     }
 
+    @Override
+    public String getComand() {
+        return "PAY";
+    }
 }

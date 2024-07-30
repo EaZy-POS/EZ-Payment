@@ -12,16 +12,8 @@ import co.id.ez.database.query.QueryBuilder;
 import co.id.ez.database.query.QueryConditional;
 import co.id.ez.database.query.QueryType;
 import co.id.ez.gateway.message.BillerRequest;
-import co.id.ez.gateway.message.mp.MPAdviceRequest;
-import co.id.ez.gateway.message.mp.MPInquiryRequest;
-import co.id.ez.gateway.message.mp.MPPaymentRequest;
-import co.id.ez.gateway.message.mp.ewallet.EwalletAdviceRequest;
-import co.id.ez.gateway.message.mp.ewallet.EwalletInquiryRequest;
-import co.id.ez.gateway.message.mp.ewallet.EwalletPaymentRequest;
-import co.id.ez.gateway.message.mp.telkom.TelkomAdviceRequest;
-import co.id.ez.gateway.message.mp.telkom.TelkomInquiryRequest;
-import co.id.ez.gateway.message.mp.telkom.TelkomPaymentRequest;
 import co.id.ez.gateway.resource.MessageHandler;
+import co.id.ez.gateway.resource.MessageType;
 import co.id.ez.gateway.resource.handler.mpmodule.EwalletModule;
 import co.id.ez.gateway.resource.handler.mpmodule.MPModule;
 import co.id.ez.gateway.resource.handler.mpmodule.GeneralPaymentModule;
@@ -49,7 +41,7 @@ import java.util.LinkedList;
  * @author Lutfi
  */
 @Path("")
-public class MPPlugin extends MessageHandler{
+public class MPPlugin extends MessageHandler {
 
     private final LinkedList<MPModule> moduleList;
 
@@ -58,15 +50,14 @@ public class MPPlugin extends MessageHandler{
         moduleList.add(new EwalletModule());
         moduleList.add(new TelkomModule());
     }
-    
+
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Path("/api/mp/inq")
     public Response inquiry(String pBodyMessage, @Context HttpHeaders pHeaders) {
         return handleInquiryRequest(pBodyMessage, pHeaders, RequiredFields.MP_INQUIRY, TableName.MUTLI_PAYMENT);
     }
-    
-    
+
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Path("/api/mp/pay")
@@ -82,23 +73,22 @@ public class MPPlugin extends MessageHandler{
     }
 
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        LogService.getInstance(this).trace().log("Construct request to biller, for modul: "+ request.getString("modul").toUpperCase());
-        return getMPModule(reqMap.getModule_id().toUpperCase()).constructBillerRequest(request);
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType) {
+        return getMPModule(reqMap.getModule_id().toUpperCase()).constructBillerRequest(request, pMsgType);
     }
-    
+
     @Override
     public void validateTransactAmount(JSONObject request, LinkedList<JSONObject> pTranmainDB) {
         BigDecimal amountMitra = getTransactAmount(request);
         BigDecimal amountTranmain = new BigDecimal(pTranmainDB.getFirst().getDouble("total_bill_amount"));
-        
+
         if (amountMitra.compareTo(amountTranmain) != 0) {
             throw new ServiceException(RC.ERROR_INVALID_TRANSACTION_AMOUNT, "Transaction value is different from inquiry");
         }
     }
 
     @Override
-    public void insertSuccessfullResponseToTranmain(JSONObject pRespBiller){
+    public void insertSuccessfullResponseToTranmain(JSONObject pRespBiller) {
         try {
             QueryBuilder tBuilder = new QueryBuilder(TableName.MUTLI_PAYMENT.get(), QueryType.INSERT);
             tBuilder.addEntryValue(MultiPaymentTable.id.name(), "UUID()", true);
@@ -113,12 +103,12 @@ public class MPPlugin extends MessageHandler{
             tBuilder.addEntryValue(MultiPaymentTable.ref_number.name(), pRespBiller.getString("refnum"));
             tBuilder.addEntryValue(MultiPaymentTable.flag.name(), "0");
             tBuilder.addEntryValue(MultiPaymentTable.transaction_data.name(), escape(pRespBiller.getJSONObject("data").toString()));
-            tBuilder.addEntryValue(MultiPaymentTable.biller.name(), reqMap.getBiller());
+            tBuilder.addEntryValue(MultiPaymentTable.biller.name(), reqMap.getProduct());
             tBuilder.addEntryValue(MultiPaymentTable.mitra_id.name(), reqMap.getClient_id());
             tBuilder.addEntryValue(MultiPaymentTable.module_id.name(), reqMap.getModule_id());
             tBuilder.addEntryValue(MultiPaymentTable.user_id.name(), reqMap.getUser_id());
             tBuilder.addEntryValue(MultiPaymentTable.info_text.name(), escape(pRespBiller.getString("text")));
-            
+
             DB.executeUpdate(dbName, tBuilder);
         } catch (SQLException ex) {
             throw new ServiceException(RC.ERROR_DATABASE, "Failed to insert tranmain data", ex);
@@ -132,27 +122,37 @@ public class MPPlugin extends MessageHandler{
             tBuilder.addEntryValue(MultiPaymentTable.paid_date.name(), "NOW()", true);
             tBuilder.addEntryValue(MultiPaymentTable.flag.name(), "1");
             tBuilder.addEntryValue(MultiPaymentTable.info_text.name(), escape(pRespBiller.getString("text")));
-            
+
             tBuilder.addWhereValue(new WhereField(MultiPaymentTable.transaction_id.name(), pRespBiller.getString("trxid"), Operator.EQUALS));
             tBuilder.addWhereValue(new WhereField(MultiPaymentTable.mitra_id.name(), reqMap.getClient_id(), Operator.EQUALS, QueryConditional.AND));
-            
+
             DB.executeUpdate(dbName, tBuilder);
         } catch (SQLException ex) {
-            LogService.getInstance(this).dbError().withCause(ex).log("Failed updating data to tranmain."+ ex.getMessage(), true);
+            LogService.getInstance(this).dbError().withCause(ex).log("Failed updating data to tranmain." + ex.getMessage(), true);
         }
     }
 
-    
     @Override
-    public LinkedList<JSONObject> validateMessage(@Context HttpHeaders pHeaders, JSONObject request, RequiredFields requiredField, TableName pTranmainTable) {
-        
-        LinkedList<JSONObject> tTranmain =super.validateMessage(pHeaders, request, requiredField, pTranmainTable);
-        
-        if (request.getString("command").equals("INQ")) {
+    public LinkedList<JSONObject> validateMessage(
+            @Context HttpHeaders pHeaders, 
+            JSONObject request, 
+            RequiredFields requiredField, 
+            TableName pTranmainTable,
+            MessageType pMsgType) {
+
+        LinkedList<JSONObject> tTranmain = super.validateMessage(
+                pHeaders, 
+                request, 
+                requiredField, 
+                pTranmainTable, 
+                pMsgType
+        );
+
+        if (pMsgType == MessageType.INQUIRY) {
             String biller = request.getString("biller");
-            reqMap.setBiller(biller);
+            reqMap.setProduct(biller);
         }
-        
+
         return tTranmain;
     }
 
@@ -163,17 +163,21 @@ public class MPPlugin extends MessageHandler{
 
     @Override
     public JSONObject constructSuccessfullResponse(JSONObject pRequest, String pResponse) {
-        LogService.getInstance(this).trace().log("Construct successfull response from biller, for modul: "+ pRequest.getString("modul").toUpperCase());
         return getMPModule(reqMap.getModule_id().toUpperCase()).constructSuccessfullResponse(pRequest, pResponse);
     }
-    
-    private MPModule getMPModule(String pModuleID){
+
+    private MPModule getMPModule(String pModuleID) {
         for (MPModule mPModule : moduleList) {
-            if(mPModule.getModuleName().equalsIgnoreCase(pModuleID)){
+            if (mPModule.getModuleName().equalsIgnoreCase(pModuleID)) {
                 return mPModule;
             }
         }
-        
+
         return new GeneralPaymentModule();
+    }
+
+    @Override
+    public String getProduct(JSONObject pRequest) {
+        return pRequest.getString("biller");
     }
 }

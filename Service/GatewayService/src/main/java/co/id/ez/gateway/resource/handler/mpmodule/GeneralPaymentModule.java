@@ -9,6 +9,7 @@ import co.id.ez.gateway.message.BillerRequest;
 import co.id.ez.gateway.message.mp.MPAdviceRequest;
 import co.id.ez.gateway.message.mp.MPInquiryRequest;
 import co.id.ez.gateway.message.mp.MPPaymentRequest;
+import co.id.ez.gateway.resource.MessageType;
 import com.json.JSONObject;
 
 /**
@@ -22,9 +23,9 @@ public class GeneralPaymentModule extends MPModule{
     }
 
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        if(request.getString("command").equalsIgnoreCase("INQ")){
-            MPInquiryRequest inqRequest = new MPInquiryRequest(request.getString("command"), request.getString("modul"));
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType) {
+        if(pMsgType == MessageType.INQUIRY){
+            MPInquiryRequest inqRequest = new MPInquiryRequest();
             inqRequest.setInput1(request.getString("input1"));
             inqRequest.setInput2(request.has("input2") ? request.getString("input2") : null);
             inqRequest.setInput3(request.has("input3") ? request.getString("input3") : null);
@@ -32,8 +33,8 @@ public class GeneralPaymentModule extends MPModule{
             return inqRequest;
         }
         
-        if(request.getString("command").equalsIgnoreCase("PAY")){
-            MPPaymentRequest inqRequest = new MPPaymentRequest(request.getString("command"), request.getString("modul"));
+        if(pMsgType == MessageType.PAYMENT){
+            MPPaymentRequest inqRequest = new MPPaymentRequest();
             inqRequest.setInput1(request.getString("input1"));
             inqRequest.setBiller(request.getString("biller"));
             inqRequest.setInput2(request.has("input2") ? request.getString("input2") : null);
@@ -43,8 +44,8 @@ public class GeneralPaymentModule extends MPModule{
             return inqRequest;
         }
         
-        if(request.getString("command").equalsIgnoreCase("ADV")){
-            MPAdviceRequest inqRequest = new MPAdviceRequest(request.getString("command"), request.getString("modul"));
+        if(pMsgType == MessageType.ADVICE){
+            MPAdviceRequest inqRequest = new MPAdviceRequest();
             inqRequest.setInput1(request.getString("input1"));
             inqRequest.setInput2(request.has("input2") ? request.getString("input2") : null);
             inqRequest.setInput3(request.has("input3") ? request.getString("input3") : null);

@@ -10,15 +10,11 @@ import co.id.ez.gateway.message.BillerRequest;
 
 /**
  *
- * @author RCS
+ * @author Lutfi
  */
 public class PLNPostpaidInquiryRequest extends BillerRequest{
     private String idpel;
     private boolean Detail;
-    
-    public PLNPostpaidInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     public String getIdpel() {
         return idpel;
@@ -44,5 +40,20 @@ public class PLNPostpaidInquiryRequest extends BillerRequest{
     @Override
     public String getRemarks() {
         return super.getRemarks() + " idpel "+ idpel; 
+    }
+
+    @Override
+    public String getModuleCode() {
+        return "PLN";
+    }
+    
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
+
+    @Override
+    public String getModule() {
+        return "PLN";
     }
 }

@@ -13,10 +13,6 @@ public class PLNPostPaidPaymentRequest extends PLNPostpaidInquiryRequest{
     
     private String amount;
 
-    public PLNPostPaidPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-
     public String getAmount() {
         return amount;
     }
@@ -28,6 +24,11 @@ public class PLNPostPaidPaymentRequest extends PLNPostpaidInquiryRequest{
     @Override
     public String getMessageStream() {
         return super.getMessageStream()+"&amount=" + amount;
+    }
+    
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
 }

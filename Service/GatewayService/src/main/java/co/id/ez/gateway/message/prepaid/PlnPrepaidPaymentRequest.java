@@ -11,8 +11,9 @@ package co.id.ez.gateway.message.prepaid;
  */
 public class PlnPrepaidPaymentRequest extends PlnPrepaidInquiryRequest{
     
-    public PlnPrepaidPaymentRequest(String comand, String modul) {
-        super(comand, modul);
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
 }

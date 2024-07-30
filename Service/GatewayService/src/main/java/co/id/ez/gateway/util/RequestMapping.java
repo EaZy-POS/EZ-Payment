@@ -16,7 +16,7 @@ import java.util.LinkedList;
  */
 public class RequestMapping{
     private final String client_id, module_id, secret_key, auth, user_id, password, path;
-    private String biller;
+    private String product;
     private boolean isDetail;
     private LinkedList<JSONObject> tranmaindata;
     private BigDecimal amount;
@@ -80,12 +80,12 @@ public class RequestMapping{
         this.amount = amount;
     }
 
-    public String getBiller() {
-        return biller;
+    public String getProduct() {
+        return product;
     }
 
-    public void setBiller(String biller) {
-        this.biller = biller;
+    public void setProduct(String product) {
+        this.product = product;
     }
 
     public boolean isDetail() {
@@ -103,7 +103,7 @@ public class RequestMapping{
     @Override
     public String toString() {
         return "RequestMapping{" + "mitra_id=" + client_id + ", product_id=" + module_id 
-                + ", mitra_key=" + secret_key + ", auth=" + auth + ", biller=" + biller 
+                + ", mitra_key=" + secret_key + ", auth=" + auth + ", product=" + product 
                 + ", user_id=" + user_id + ", tranmaindata=" + tranmaindata.toString() 
                 + ", path=" + path + ", amount=" + amount + '}';
     }
@@ -114,6 +114,7 @@ public class RequestMapping{
         pRequest.put("client_id", getClient_id());
         pRequest.put("secret_key", getSecret_key());
         pRequest.put("module_id", getModule_id());
+        pRequest.put("product", getProduct());
         pRequest.put("user_id", EncryptionService.encryptor().Base64Encrypt(
                 EncryptionService.encryptor()
                         .encrypt(getUser_id(), getSecret_key())

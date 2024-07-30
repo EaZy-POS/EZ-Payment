@@ -9,17 +9,13 @@ import co.id.ez.gateway.message.BillerRequest;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PlnPrepaidInquiryRequest extends BillerRequest{
     
     private String MSN;
     private String nominal;
     
-    public PlnPrepaidInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-
     public String getMSN() {
         return MSN;
     }
@@ -44,5 +40,20 @@ public class PlnPrepaidInquiryRequest extends BillerRequest{
     @Override
     public String getRemarks() {
         return super.getRemarks() + " msn "+ MSN +"("+nominal+")"; 
+    }
+
+    @Override
+    public String getModuleCode() {
+        return "PRE";
+    }
+    
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
+
+    @Override
+    public String getModule() {
+        return "PRE";
     }
 }

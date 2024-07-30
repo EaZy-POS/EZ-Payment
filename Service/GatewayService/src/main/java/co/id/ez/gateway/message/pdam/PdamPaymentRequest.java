@@ -7,16 +7,17 @@ package co.id.ez.gateway.message.pdam;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PdamPaymentRequest extends PdamInquiryRequest{
-    
-    public PdamPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     @Override
     public String getMessageStream() {
         return super.getMessageStream();
+    }
+    
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 }

@@ -9,13 +9,9 @@ import co.id.ez.gateway.message.mp.MPPaymentRequest;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class EwalletPaymentRequest extends MPPaymentRequest {
-
-    public EwalletPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     @Override
     public String getMessageStream() {
@@ -26,6 +22,16 @@ public class EwalletPaymentRequest extends MPPaymentRequest {
     @Override
     public String getRemarks() {
         return super.getRemarks("Pembayaran") + " destnum " + getInput1() + "(" + getBiller() + ")";
+    }
+    
+    @Override
+    public String getModule() {
+        return "ewallet";
+    }
+    
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
 }

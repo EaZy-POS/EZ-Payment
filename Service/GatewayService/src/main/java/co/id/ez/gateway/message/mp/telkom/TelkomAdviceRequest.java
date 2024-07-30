@@ -10,13 +10,9 @@ import co.id.ez.gateway.message.mp.MPAdviceRequest;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class TelkomAdviceRequest extends MPAdviceRequest{
-    
-    public TelkomAdviceRequest(String comand, String modul) {
-        super(comand, modul);
-    }
     
     @Override
     public String getMessageStream() {
@@ -26,5 +22,15 @@ public class TelkomAdviceRequest extends MPAdviceRequest{
     @Override
     public String getRemarks() {
         return super.getRemarks("Pembayaran") + " nopel " + getInput1() + "(Telkom)";
+    }
+    
+    @Override
+    public String getModule() {
+        return "ph";
+    }
+    
+    @Override
+    public String getComand() {
+        return "ADV";
     }
 }

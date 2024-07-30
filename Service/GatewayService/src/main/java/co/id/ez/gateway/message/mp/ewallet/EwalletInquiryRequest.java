@@ -16,10 +16,6 @@ import co.id.ez.system.core.rc.RC;
  */
 public class EwalletInquiryRequest extends MPInquiryRequest {
 
-    public EwalletInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-
     @Override
     public String getMessageStream() {
         
@@ -39,4 +35,18 @@ public class EwalletInquiryRequest extends MPInquiryRequest {
                 + "&nominal=" + getInput2() ;
     }
 
+    @Override
+    public String getModuleCode() {
+        return "EWL";
+    }
+    
+    @Override
+    public String getModule() {
+        return "ewallet";
+    }
+    
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
 }

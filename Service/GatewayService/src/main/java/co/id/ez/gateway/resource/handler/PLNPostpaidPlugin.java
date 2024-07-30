@@ -16,6 +16,7 @@ import co.id.ez.gateway.message.postpaid.PLNPostPaidPaymentRequest;
 import co.id.ez.gateway.message.postpaid.PLNPostpaidInquiryRequest;
 import co.id.ez.gateway.resource.MessageHandler;
 import static co.id.ez.gateway.resource.CommonHanlder.dbName;
+import co.id.ez.gateway.resource.MessageType;
 import co.id.ez.gateway.util.enums.RequiredFields;
 import co.id.ez.gateway.util.enums.TableName;
 import co.id.ez.gateway.util.enums.tables.PospaidTable;
@@ -63,18 +64,16 @@ public class PLNPostpaidPlugin extends MessageHandler {
     }
 
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        if (request.getString("command").equalsIgnoreCase("INQ")) {
-            PLNPostpaidInquiryRequest inqRequest = 
-                    new PLNPostpaidInquiryRequest(request.getString("command"), request.getString("modul"));
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType) {
+        if (pMsgType == MessageType.INQUIRY) {
+            PLNPostpaidInquiryRequest inqRequest = new PLNPostpaidInquiryRequest();
             inqRequest.setIdpel(request.getString("idpel"));
             inqRequest.setDetail(request.getBoolean("detail"));
             return inqRequest;
         }
 
-        if (request.getString("command").equalsIgnoreCase("PAY")) {
-            PLNPostPaidPaymentRequest inqRequest = 
-                    new PLNPostPaidPaymentRequest(request.getString("command"), request.getString("modul"));
+        if (pMsgType == MessageType.PAYMENT) {
+            PLNPostPaidPaymentRequest inqRequest = new PLNPostPaidPaymentRequest();
             inqRequest.setIdpel(request.getString("idpel"));
             inqRequest.setDetail(request.getBoolean("detail"));
             inqRequest.setTrxid(request.getString("trxid"));
@@ -82,9 +81,8 @@ public class PLNPostpaidPlugin extends MessageHandler {
             return inqRequest;
         }
 
-        if (request.getString("command").equalsIgnoreCase("ADV")) {
-            PLNPostPaidAdviceRequest inqRequest = 
-                    new PLNPostPaidAdviceRequest(request.getString("command"), request.getString("modul"));
+        if (pMsgType == MessageType.ADVICE) {
+            PLNPostPaidAdviceRequest inqRequest = new PLNPostPaidAdviceRequest();
             inqRequest.setIdpel(request.getString("idpel"));
             inqRequest.setAmount(request.get("amount").toString());
             inqRequest.setDetail(request.getBoolean("detail"));
@@ -182,11 +180,16 @@ public class PLNPostpaidPlugin extends MessageHandler {
     }
     
     @Override
-    public LinkedList<JSONObject> validateMessage(@Context HttpHeaders pHeaders, JSONObject request, RequiredFields requiredField, TableName pTranmainTable) {
+    public LinkedList<JSONObject> validateMessage(
+            @Context HttpHeaders pHeaders, 
+            JSONObject request, 
+            RequiredFields requiredField, 
+            TableName pTranmainTable, 
+            MessageType pMsgType) {
         
-        LinkedList<JSONObject> tTranmain =super.validateMessage(pHeaders, request, requiredField, pTranmainTable);
+        LinkedList<JSONObject> tTranmain =super.validateMessage(pHeaders, request, requiredField, pTranmainTable, pMsgType);
         
-        if (request.getString("command").equals("INQ")) {
+        if (pMsgType == MessageType.INQUIRY) {
             reqMap.setDetail(request.getBoolean("detail"));
         }
         
@@ -198,4 +201,8 @@ public class PLNPostpaidPlugin extends MessageHandler {
         return new BigDecimal(pRequest.getDouble("amount"));
     }
 
+    @Override
+    public String getProduct(JSONObject pRequest) {
+        return null;
+    }
 }

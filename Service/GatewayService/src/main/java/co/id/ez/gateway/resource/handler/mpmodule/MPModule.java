@@ -6,6 +6,7 @@
 package co.id.ez.gateway.resource.handler.mpmodule;
 
 import co.id.ez.gateway.message.BillerRequest;
+import co.id.ez.gateway.resource.MessageType;
 import com.json.JSONObject;
 
 /**
@@ -23,7 +24,7 @@ public abstract class MPModule {
         return moduleName;
     }
     
-    public abstract BillerRequest constructBillerRequest(JSONObject request);
+    public abstract BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType);
     
     public JSONObject constructSuccessfullResponse(JSONObject pRequest, String pResponse){
         JSONObject tResp = new JSONObject(pResponse);

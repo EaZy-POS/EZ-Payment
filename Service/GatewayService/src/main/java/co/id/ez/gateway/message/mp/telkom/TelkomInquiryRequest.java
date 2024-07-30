@@ -9,17 +9,27 @@ import co.id.ez.gateway.message.mp.MPInquiryRequest;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class TelkomInquiryRequest extends MPInquiryRequest {
-
-    public TelkomInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     @Override
     public String getMessageStream() {
         return super.getBasicMessageStream()+ "&nopel=" + getInput1();
     }
 
+    @Override
+    public String getModuleCode() {
+        return "TKM";
+    }
+
+    @Override
+    public String getModule() {
+        return "ph";
+    }
+    
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
 }
