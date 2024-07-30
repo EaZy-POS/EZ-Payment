@@ -11,14 +11,16 @@ import java.util.Date;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PlnPrepaidPaymentRequest extends PlnPrepaidInquiryRequest{
     
-    public PlnPrepaidPaymentRequest(String comand, String modul) {
-        super(comand, modul);
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
+    
     @Override
     public String contructSimulatorResponse() {
         

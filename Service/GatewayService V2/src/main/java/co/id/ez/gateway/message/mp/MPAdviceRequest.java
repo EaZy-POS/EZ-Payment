@@ -11,7 +11,8 @@ package co.id.ez.gateway.message.mp;
  */
 public class MPAdviceRequest extends MPPaymentRequest{
     
-    public MPAdviceRequest(String comand, String modul) {
-        super(comand, modul);
+    @Override
+    public String getComand() {
+        return "ADV";
     }
 }

@@ -7,13 +7,9 @@ package co.id.ez.gateway.message.pdam;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PdamAdviceRequest extends PdamPaymentRequest{
-    
-    public PdamAdviceRequest(String comand, String modul) {
-        super(comand, modul);
-    }
     
     public void setInqRequest(PdamInquiryRequest inqReq){
         setIdpel(inqReq.getIdpel());
@@ -24,5 +20,10 @@ public class PdamAdviceRequest extends PdamPaymentRequest{
     @Override
     public String getMessageStream() {
         return super.getMessageStream();
+    }
+    
+    @Override
+    public String getComand() {
+        return "ADV";
     }
 }

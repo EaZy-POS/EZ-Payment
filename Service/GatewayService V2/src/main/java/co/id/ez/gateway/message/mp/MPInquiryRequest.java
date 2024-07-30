@@ -19,10 +19,6 @@ public class MPInquiryRequest extends BillerRequest {
     private String input1, input2, input3;
     private String biller;
 
-    public MPInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
-
     public String getInput1() {
         return input1;
     }
@@ -65,6 +61,21 @@ public class MPInquiryRequest extends BillerRequest {
     @Override
     public String getRemarks() {
         return super.getRemarks() + " idpel " + input1 + "(" + biller + ")";
+    }
+    
+    @Override
+    public String getModuleCode() {
+        return "MTP";
+    }
+
+    @Override
+    public String getModule() {
+        return "gp";
+    }
+
+    @Override
+    public String getComand() {
+        return "INQ";
     }
 
     @Override

@@ -7,12 +7,13 @@ package co.id.ez.gateway.message.postpaid;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PLNPostPaidAdviceRequest extends PLNPostPaidPaymentRequest{
 
-    public PLNPostPaidAdviceRequest(String comand, String modul) {
-        super(comand, modul);
+    @Override
+    public String getComand() {
+        return "ADV";
     }
 
 }

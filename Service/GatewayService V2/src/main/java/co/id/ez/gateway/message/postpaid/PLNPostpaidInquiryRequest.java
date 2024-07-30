@@ -10,16 +10,12 @@ import java.util.UUID;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class PLNPostpaidInquiryRequest extends BillerRequest {
 
     private String idpel;
     private boolean Detail;
-
-    public PLNPostpaidInquiryRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     public String getIdpel() {
         return idpel;
@@ -86,8 +82,23 @@ public class PLNPostpaidInquiryRequest extends BillerRequest {
                 + "\"penalty_4\": 0, "
                 + "\"trxid\": \"" + getTrxid() + "\"\n"
                 + "}";
-        
+
         return result;
+    }
+
+    @Override
+    public String getModuleCode() {
+        return "PLN";
+    }
+    
+    @Override
+    public String getComand() {
+        return "INQ";
+    }
+
+    @Override
+    public String getModule() {
+        return "PLN";
     }
 
 }

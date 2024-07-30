@@ -63,9 +63,9 @@ public abstract class MessageHandler extends CommonHanlder {
 
             tJsonRequest = new JSONObject(tRequest);
 
-            validateMessage(pHeaders, tRequest, pRequiredField, pTranmain);
+            validateMessage(pHeaders, tRequest, pRequiredField, pTranmain, MessageType.INQUIRY);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"),
+                    MessageType.INQUIRY.get(),
                     "REQ",
                     corelation_id,
                     reqMap,
@@ -74,13 +74,13 @@ public abstract class MessageHandler extends CommonHanlder {
                     )
             );
             
-            BillerRequest inqReq = constructBillerRequest(tJsonRequest);
+            BillerRequest inqReq = constructBillerRequest(tJsonRequest, MessageType.INQUIRY);
 
             String tResponseString = sendGetHttpRequest(inqReq, reqMap);
             RC tRC;
             JSONObject res;
             if (tRequest != null && !tResponseString.equals("") && tResponseString.startsWith("{")) {
-                res = mergeResponseWithResponse(tJsonRequest, tResponseString);
+                res = constructSuccessfullResponse(tJsonRequest, tResponseString);
                 tRC = RC.parseResponseCodeString(res.getString("rc"));
                 if (tRC == RC.SUCCESS) {
                     insertSuccessfullResponseToTranmain(res);
@@ -99,7 +99,7 @@ public abstract class MessageHandler extends CommonHanlder {
             Response tResp = constructHttpResponse(tRC, res);
             
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.INQUIRY.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -138,7 +138,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.INQUIRY.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -160,7 +160,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.INQUIRY.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -203,10 +203,10 @@ public abstract class MessageHandler extends CommonHanlder {
 
             tJsonRequest = new JSONObject(tRequest);
 
-            LinkedList<JSONObject> tranmain = validateMessage(pHeaders, tRequest, pRequiredField, pTranmain);
+            LinkedList<JSONObject> tranmain = validateMessage(pHeaders, tRequest, pRequiredField, pTranmain, MessageType.PAYMENT);
 
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "REQ", 
                     corelation_id, 
                     reqMap, 
@@ -220,7 +220,7 @@ public abstract class MessageHandler extends CommonHanlder {
                     ? tranmain.getFirst().getString("ref_number")
                     : UUID.randomUUID().toString().replace("-", "").toUpperCase();
             
-            payReq = constructBillerRequest(tJsonRequest);
+            payReq = constructBillerRequest(tJsonRequest, MessageType.PAYMENT);
             payReq.setRefnum(tRefnum);
             
             isDeductedDeposit = sendDeposit(tJsonRequest, payReq, "D");
@@ -229,7 +229,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject res;
 
             if (tRequest != null && !tResponseString.equals("") && tResponseString.startsWith("{")) {
-                res = mergeResponseWithResponse(tJsonRequest, tResponseString);
+                res = constructSuccessfullResponse(tJsonRequest, tResponseString);
                 tRC = RC.parseResponseCodeString(res.getString("rc"));
                 if (tRC == RC.SUCCESS || tRC == RC.SUCCESS_NOTCONFIRMED) {
                     updateSuccessfullResponseToTranmain(res);
@@ -265,7 +265,7 @@ public abstract class MessageHandler extends CommonHanlder {
             Response tResp = constructHttpResponse(tRC, res);
             
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -308,7 +308,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -337,7 +337,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.PAYMENT.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -379,9 +379,9 @@ public abstract class MessageHandler extends CommonHanlder {
 
             tJsonRequest = new JSONObject(tRequest);
 
-            LinkedList<JSONObject> tTranmain = validateMessage(pHeaders, tRequest, pRequiredField, pTranmain);
+            LinkedList<JSONObject> tTranmain = validateMessage(pHeaders, tRequest, pRequiredField, pTranmain, MessageType.ADVICE);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "REQ", 
                     corelation_id, 
                     reqMap, 
@@ -395,7 +395,7 @@ public abstract class MessageHandler extends CommonHanlder {
                     ? tTranmain.getFirst().getString("ref_number")
                     : UUID.randomUUID().toString().replace("-", "").toUpperCase();
             
-            advReq = constructBillerRequest(tJsonRequest);
+            advReq = constructBillerRequest(tJsonRequest, MessageType.ADVICE);
             advReq.setRefnum(tRefnum);
             
             JSONObject res;
@@ -417,7 +417,7 @@ public abstract class MessageHandler extends CommonHanlder {
             
 
             if (tRequest != null && !tResponseString.equals("") && tResponseString.startsWith("{")) {
-                res = mergeResponseWithResponse(tJsonRequest, tResponseString);
+                res = constructSuccessfullResponse(tJsonRequest, tResponseString);
                 tRC = RC.parseResponseCodeString(res.getString("rc"));
                 if (tRC == RC.SUCCESS || tRC == RC.SUCCESS_NOTCONFIRMED) {
                     if (tTranmain.getFirst().getInt("flag") == 3) {
@@ -448,7 +448,7 @@ public abstract class MessageHandler extends CommonHanlder {
             Response tResp = constructHttpResponse(tRC, res);
             
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -488,7 +488,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 
@@ -516,7 +516,7 @@ public abstract class MessageHandler extends CommonHanlder {
             JSONObject tResponse = constructErrorResponse(tJsonRequest, tRC.getResponseCodeString(), tMsg);
             Response tResp = constructHttpResponse(tRC, tResponse);
             controller.logDownMessage(
-                    tJsonRequest.getString("command"), 
+                    MessageType.ADVICE.get(), 
                     "RES", 
                     corelation_id, 
                     reqMap, 

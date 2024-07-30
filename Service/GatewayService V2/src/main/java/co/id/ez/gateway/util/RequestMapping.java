@@ -12,23 +12,23 @@ import java.util.LinkedList;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
-public class RequestMapping{
-    
+public class RequestMapping {
+
     private final String client_id, module_id, auth, user_id, password, path, date, signature;
-    private String biller;
+    private String product;
     private boolean isDetail;
     private LinkedList<JSONObject> tranmaindata;
     private BigDecimal amount;
-    
+
     private final String cServiceKey = "0xdef09x70";
 
     public RequestMapping(
-            String client_id, 
-            String module_id, 
-            String auth, 
-            String userid, 
+            String client_id,
+            String module_id,
+            String auth,
+            String userid,
             String password,
             String path,
             String date,
@@ -80,13 +80,13 @@ public class RequestMapping{
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
-
-    public String getBiller() {
-        return biller;
+    
+    public String getProduct() {
+        return product;
     }
 
-    public void setBiller(String biller) {
-        this.biller = biller;
+    public void setProduct(String product) {
+        this.product = product;
     }
 
     public boolean isDetail() {
@@ -96,7 +96,7 @@ public class RequestMapping{
     public void setDetail(boolean isDetail) {
         this.isDetail = isDetail;
     }
-    
+
     public String getPath() {
         return path;
     }
@@ -111,14 +111,14 @@ public class RequestMapping{
 
     @Override
     public String toString() {
-        return "RequestMapping{" + "mitra_id=" + client_id + ", product_id=" + module_id 
-                + ", auth=" + auth + ", biller=" + biller 
-                + ", user_id=" + user_id + ", tranmaindata=" + tranmaindata.toString() 
-                + ", path=" + path + ", amount=" + amount 
+        return "RequestMapping{" + "mitra_id=" + client_id + ", product_id=" + module_id
+                + ", auth=" + auth + ", product=" + getProduct()
+                + ", user_id=" + user_id + ", tranmaindata=" + tranmaindata.toString()
+                + ", path=" + path + ", amount=" + amount
                 + ", date=" + date + ", signature=" + signature + '}';
     }
 
-    public JSONObject getAuthRequest(String pBody){
+    public JSONObject getAuthRequest(String pBody) {
         JSONObject pRequest = new JSONObject();
         pRequest.put("path", getPath());
         pRequest.put("client_id", getClient_id());
@@ -140,35 +140,36 @@ public class RequestMapping{
                         )
                 )
         );
-        pRequest.put("password", 
+        pRequest.put("password",
                 EncryptionService.encryptor().Base64Encrypt(
-                EncryptionService.encryptor()
-                        .encrypt(
-                                getPassword(),
-                                cServiceKey
-                        )
-        )
+                        EncryptionService.encryptor()
+                                .encrypt(
+                                        getPassword(),
+                                        cServiceKey
+                                )
+                )
         );
-        
+        pRequest.put("product", getProduct());
+
         return pRequest;
     }
-    
-    public JSONObject getJournalRequest(String pJournal, String pRefnum, String pRemark, BigDecimal pAmount){
+
+    public JSONObject getJournalRequest(String pJournal, String pRefnum, String pRemark, BigDecimal pAmount) {
         JSONObject pRequest = new JSONObject();
         pRequest.put("das_id", EncryptionService.encryptor().Base64Encrypt(
                 EncryptionService.encryptor()
                         .encrypt(
-                                getClient_id(), 
+                                getClient_id(),
                                 cServiceKey
                         )
         )
         );
-        
+
         pRequest.put("jurnal", pJournal);
         pRequest.put("refnum", pRefnum);
         pRequest.put("remarks", pRemark);
         pRequest.put("amount", pAmount.doubleValue());
-        
+
         return pRequest;
     }
 }

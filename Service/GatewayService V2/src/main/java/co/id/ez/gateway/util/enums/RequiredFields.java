@@ -13,40 +13,39 @@ import java.util.List;
  * @author RCS
  */
 public enum RequiredFields {
-    VOUCHER_INQUIRY(Fields.command, Fields.modul, Fields.tujuan, Fields.voucherid),
-    VOUCHER_PAYMENT(Fields.command, Fields.modul, Fields.tujuan, Fields.voucherid, Fields.trxid, Fields.harga, Fields.harga_jual),
+    VOUCHER_INQUIRY(Fields.tujuan, Fields.voucherid),
+    VOUCHER_PAYMENT(Fields.tujuan, Fields.voucherid, Fields.trxid, Fields.harga, Fields.harga_jual),
     VOUCHER_ADVICE(VOUCHER_PAYMENT),
-    PREPAID_INQUIRY(Fields.command, Fields.modul, Fields.MSN, Fields.nominal),
-    PREPAID_PAYMENT(Fields.command, Fields.modul, Fields.MSN, Fields.nominal, Fields.trxid, Fields.harga_jual),
+    PREPAID_INQUIRY(Fields.MSN, Fields.nominal),
+    PREPAID_PAYMENT(Fields.MSN, Fields.nominal, Fields.trxid, Fields.harga_jual),
     PREPAID_ADVICE(PREPAID_PAYMENT),
-    POSPAID_INQUIRY(Fields.command, Fields.modul, Fields.idpel, Fields.detail),
-    POSPAID_PAYMENT(Fields.command, Fields.modul, Fields.idpel, Fields.detail, Fields.amount, Fields.trxid),
+    POSPAID_INQUIRY(Fields.idpel, Fields.detail),
+    POSPAID_PAYMENT(Fields.idpel, Fields.detail, Fields.amount, Fields.trxid),
     POSPAID_ADVICE(POSPAID_PAYMENT),
-    PDAM_INQUIRY(Fields.command, Fields.modul, Fields.idpel, Fields.detail, Fields.biller),
-    PDAM_PAYMENT(Fields.command, Fields.modul, Fields.idpel, Fields.detail, Fields.biller, Fields.trxid, Fields.amount),
+    PDAM_INQUIRY(Fields.idpel, Fields.detail, Fields.biller),
+    PDAM_PAYMENT(Fields.idpel, Fields.detail, Fields.biller, Fields.trxid, Fields.amount),
     PDAM_ADVICE(PDAM_PAYMENT),
-    MP_INQUIRY(Fields.command, Fields.modul, Fields.input1, Fields.biller),
-    MP_PAYMENT(Fields.command, Fields.modul, Fields.input1, Fields.biller, Fields.amount, Fields.trxid),
-    MP_ADVICE(MP_PAYMENT),
-    ;
-    
-    
+    MP_INQUIRY(Fields.input1, Fields.biller),
+    MP_PAYMENT(Fields.input1, Fields.biller, Fields.amount, Fields.trxid),
+    MP_ADVICE(MP_PAYMENT),;
+
     private final List<String> fields;
-    private RequiredFields(Fields... fields){
+
+    private RequiredFields(Fields... fields) {
         this.fields = new ArrayList<>();
         for (Fields field : fields) {
             this.fields.add(field.name());
         }
     }
-    
-    private RequiredFields(RequiredFields fields){
+
+    private RequiredFields(RequiredFields fields) {
         this.fields = new ArrayList<>();
         fields.getFields().forEach(field -> {
             this.fields.add(field);
         });
     }
-    
-    public List<String> getFields(){
+
+    public List<String> getFields() {
         return fields;
     }
 }

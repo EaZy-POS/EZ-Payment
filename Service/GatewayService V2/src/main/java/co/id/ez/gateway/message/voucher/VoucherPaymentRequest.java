@@ -11,13 +11,9 @@ import java.util.UUID;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class VoucherPaymentRequest extends VoucherInquiryRequest {
-
-    public VoucherPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     @Override
     public String getMessageStream() {
@@ -42,6 +38,11 @@ public class VoucherPaymentRequest extends VoucherInquiryRequest {
                 + "}";
 
         return result;
+    }
+    
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
 }

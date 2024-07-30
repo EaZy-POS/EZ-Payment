@@ -10,15 +10,11 @@ import co.id.ez.system.core.rc.RC;
 
 /**
  *
- * @author RCS
+ * @author lutfi
  */
 public class MPPaymentRequest extends MPInquiryRequest {
 
     private String amount;
-
-    public MPPaymentRequest(String comand, String modul) {
-        super(comand, modul);
-    }
 
     public String getAmount() {
         return amount;
@@ -31,6 +27,11 @@ public class MPPaymentRequest extends MPInquiryRequest {
     @Override
     public String getMessageStream() {
         return super.getMessageStream() + "&amount=" + amount;
+    }
+    
+    @Override
+    public String getComand() {
+        return "PAY";
     }
 
     @Override

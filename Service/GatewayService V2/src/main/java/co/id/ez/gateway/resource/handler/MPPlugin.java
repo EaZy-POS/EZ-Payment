@@ -16,6 +16,11 @@ import co.id.ez.gateway.message.mp.MPAdviceRequest;
 import co.id.ez.gateway.message.mp.MPInquiryRequest;
 import co.id.ez.gateway.message.mp.MPPaymentRequest;
 import co.id.ez.gateway.resource.MessageHandler;
+import co.id.ez.gateway.resource.MessageType;
+import co.id.ez.gateway.resource.handler.mpmodule.EwalletModule;
+import co.id.ez.gateway.resource.handler.mpmodule.GeneralPaymentModule;
+import co.id.ez.gateway.resource.handler.mpmodule.MPModule;
+import co.id.ez.gateway.resource.handler.mpmodule.TelkomModule;
 import co.id.ez.gateway.util.enums.RequiredFields;
 import co.id.ez.gateway.util.enums.TableName;
 import co.id.ez.gateway.util.enums.tables.MultiPaymentTable;
@@ -41,6 +46,14 @@ import java.util.LinkedList;
 @Path("")
 public class MPPlugin extends MessageHandler{
 
+    private final LinkedList<MPModule> moduleList;
+
+    public MPPlugin() {
+        moduleList = new LinkedList<>();
+        moduleList.add(new EwalletModule());
+        moduleList.add(new TelkomModule());
+    }
+    
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Path("/api/mp/inq")
@@ -64,38 +77,8 @@ public class MPPlugin extends MessageHandler{
     }
 
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        if(request.getString("command").equalsIgnoreCase("INQ")){
-            MPInquiryRequest inqRequest = new MPInquiryRequest(request.getString("command"), request.getString("modul"));
-            inqRequest.setInput1(request.getString("input1"));
-            inqRequest.setInput2(request.has("input2") ? request.getString("input2") : null);
-            inqRequest.setInput3(request.has("input3") ? request.getString("input3") : null);
-            inqRequest.setBiller(request.getString("biller"));
-            return inqRequest;
-        }
-        
-        if(request.getString("command").equalsIgnoreCase("PAY")){
-            MPPaymentRequest inqRequest = new MPPaymentRequest(request.getString("command"), request.getString("modul"));
-            inqRequest.setInput1(request.getString("input1"));
-            inqRequest.setBiller(request.getString("biller"));
-            inqRequest.setInput2(request.has("input2") ? request.getString("input2") : null);
-            inqRequest.setInput3(request.has("input3") ? request.getString("input3") : null);
-            inqRequest.setTrxid(request.getString("trxid"));
-            inqRequest.setAmount(request.get("amount").toString());
-            return inqRequest;
-        }
-        
-        if(request.getString("command").equalsIgnoreCase("ADV")){
-            MPAdviceRequest inqRequest = new MPAdviceRequest(request.getString("command"), request.getString("modul"));
-            inqRequest.setInput1(request.getString("input1"));
-            inqRequest.setInput2(request.has("input2") ? request.getString("input2") : null);
-            inqRequest.setInput3(request.has("input3") ? request.getString("input3") : null);
-            inqRequest.setBiller(request.getString("biller"));
-            inqRequest.setTrxid(request.getString("trxid"));
-            inqRequest.setAmount(request.get("amount").toString());
-            return inqRequest;
-        }
-        return null;
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType) {
+        return getMPModule(reqMap.getModule_id().toUpperCase()).constructBillerRequest(request, pMsgType);
     }
     
     @Override
@@ -124,7 +107,7 @@ public class MPPlugin extends MessageHandler{
             tBuilder.addEntryValue(MultiPaymentTable.ref_number.name(), pRespBiller.getString("refnum"));
             tBuilder.addEntryValue(MultiPaymentTable.flag.name(), "0");
             tBuilder.addEntryValue(MultiPaymentTable.transaction_data.name(), escape(pRespBiller.getJSONObject("data").toString()));
-            tBuilder.addEntryValue(MultiPaymentTable.biller.name(), reqMap.getBiller());
+            tBuilder.addEntryValue(MultiPaymentTable.biller.name(), reqMap.getProduct());
             tBuilder.addEntryValue(MultiPaymentTable.mitra_id.name(), reqMap.getClient_id());
             tBuilder.addEntryValue(MultiPaymentTable.module_id.name(), reqMap.getModule_id());
             tBuilder.addEntryValue(MultiPaymentTable.user_id.name(), reqMap.getUser_id());
@@ -159,15 +142,16 @@ public class MPPlugin extends MessageHandler{
             @Context HttpHeaders pHeaders, 
             String pBodyRequest, 
             RequiredFields pRequiredField, 
-            TableName pTranmainTable) {
+            TableName pTranmainTable,
+            MessageType pMsgType) {
         
-        LinkedList<JSONObject> tTranmain =super.validateMessage(pHeaders, pBodyRequest, pRequiredField, pTranmainTable);
+        LinkedList<JSONObject> tTranmain =super.validateMessage(pHeaders, pBodyRequest, pRequiredField, pTranmainTable, pMsgType);
         
         JSONObject request = new JSONObject(pBodyRequest);
         
-        if (request.getString("command").equals("INQ")) {
+        if (pMsgType == MessageType.INQUIRY) {
             String biller = request.getString("biller");
-            reqMap.setBiller(biller);
+            reqMap.setProduct(biller);
         }
         
         return tTranmain;
@@ -176,6 +160,26 @@ public class MPPlugin extends MessageHandler{
     @Override
     public BigDecimal getTransactAmount(JSONObject pRequest) {
         return new BigDecimal(pRequest.getDouble("amount"));
+    }
+    
+    private MPModule getMPModule(String pModuleID) {
+        for (MPModule mPModule : moduleList) {
+            if (mPModule.getModuleName().equalsIgnoreCase(pModuleID)) {
+                return mPModule;
+            }
+        }
+
+        return new GeneralPaymentModule();
+    }
+
+    @Override
+    public String getProduct(JSONObject pRequest) {
+        return pRequest.getString("biller");
+    }
+    
+    @Override
+    public JSONObject constructSuccessfullResponse(JSONObject pRequest, String pResponse) {
+        return getMPModule(reqMap.getModule_id().toUpperCase()).constructSuccessfullResponse(pRequest, pResponse);
     }
 
 }

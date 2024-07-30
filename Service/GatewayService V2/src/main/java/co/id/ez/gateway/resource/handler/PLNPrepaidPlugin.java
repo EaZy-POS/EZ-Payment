@@ -15,6 +15,7 @@ import co.id.ez.gateway.message.prepaid.PlnPrepaidAdviceRequest;
 import co.id.ez.gateway.message.prepaid.PlnPrepaidInquiryRequest;
 import co.id.ez.gateway.message.prepaid.PlnPrepaidPaymentRequest;
 import co.id.ez.gateway.resource.MessageHandler;
+import co.id.ez.gateway.resource.MessageType;
 import co.id.ez.gateway.util.enums.RequiredFields;
 import co.id.ez.gateway.util.enums.TableName;
 import co.id.ez.gateway.util.enums.tables.PrepaidTable;
@@ -62,24 +63,24 @@ public class PLNPrepaidPlugin extends MessageHandler {
     }
 
     @Override
-    public BillerRequest constructBillerRequest(JSONObject request) {
-        if (request.getString("command").equalsIgnoreCase("INQ")) {
-            PlnPrepaidInquiryRequest inqRequest = new PlnPrepaidInquiryRequest(request.getString("command"), request.getString("modul"));
+    public BillerRequest constructBillerRequest(JSONObject request, MessageType pMsgType) {
+        if (pMsgType == MessageType.INQUIRY) {
+            PlnPrepaidInquiryRequest inqRequest = new PlnPrepaidInquiryRequest();
             inqRequest.setMSN(request.getString("MSN"));
             inqRequest.setNominal(request.getString("nominal"));
             return inqRequest;
         }
 
-        if (request.getString("command").equalsIgnoreCase("PAY")) {
-            PlnPrepaidPaymentRequest inqRequest = new PlnPrepaidPaymentRequest(request.getString("command"), request.getString("modul"));
+        if (pMsgType == MessageType.PAYMENT) {
+            PlnPrepaidPaymentRequest inqRequest = new PlnPrepaidPaymentRequest();
             inqRequest.setMSN(request.getString("MSN"));
             inqRequest.setNominal(request.getString("nominal"));
             inqRequest.setTrxid(request.getString("trxid"));
             return inqRequest;
         }
 
-        if (request.getString("command").equalsIgnoreCase("ADV")) {
-            PlnPrepaidAdviceRequest inqRequest = new PlnPrepaidAdviceRequest(request.getString("command"), request.getString("modul"));
+        if (pMsgType == MessageType.ADVICE) {
+            PlnPrepaidAdviceRequest inqRequest = new PlnPrepaidAdviceRequest();
             inqRequest.setMSN(request.getString("MSN"));
             inqRequest.setNominal(request.getString("nominal"));
             inqRequest.setTrxid(request.getString("trxid"));
@@ -169,5 +170,10 @@ public class PLNPrepaidPlugin extends MessageHandler {
     @Override
     public Object getMitraAmount(JSONObject request){
         return request.get("harga_jual").toString();
+    }
+    
+    @Override
+    public String getProduct(JSONObject pRequest) {
+        return pRequest.get("nominal").toString();
     }
 }
