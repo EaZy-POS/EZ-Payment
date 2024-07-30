@@ -11,13 +11,16 @@ import co.id.ez.system.core.rc.RC;
 import com.json.JSONArray;
 import com.json.JSONObject;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
  * @author Lutfi
  */
-public class MultiPaymentBillerHandler extends MessageHandler{
+public class MultiPaymentBillerHandler extends MessageHandler {
 
     @Override
     public String performHandler(JSONObject request) {
@@ -32,21 +35,23 @@ public class MultiPaymentBillerHandler extends MessageHandler{
             throw new ServiceException(RC.ERROR_DATABASE, "(" + corelation_id + ") Failed get multi payment biller list");
         }
     }
-    
-    private String constructResponse(LinkedList<JSONObject> data){
+
+    private String constructResponse(LinkedList<JSONObject> data) {
         JSONObject resp = new JSONObject();
         
-        if(data.size() > 0){
+        if (data.size() > 0) {
             resp.put("rc", "0000");
             resp.put("rcm", "Success");
-        }else{
+        } else {
             resp.put("rc", "0014");
             resp.put("rcm", "Data Not Found");
         }
         
         JSONArray detail = new JSONArray();
+        HashMap<String, List<JSONObject>> tModuleMap = new HashMap<>();
         
-        data.stream().map(jSONObject -> {
+        data.forEach(jSONObject -> {
+            String tModuleCode = jSONObject.getString("module_code");
             String tBiller = jSONObject.getString("biller");
             String tBillerName = jSONObject.getString("biller_name");
             boolean active = jSONObject.getInt("status") == 1;
@@ -60,10 +65,10 @@ public class MultiPaymentBillerHandler extends MessageHandler{
             billerData.put("details", new JSONArray(details));
             JSONArray input = new JSONArray();
             for (int i = 0; i < 3; i++) {
-                if(jSONObject.has("input_"+ (i+1) +"_label") &&
-                        jSONObject.has("input_"+ (i+1) +"_type")){
-                    String label = jSONObject.getString("input_"+ (i+1) +"_label");
-                    JSONObject type = new JSONObject(jSONObject.get("input_"+ (i+1) +"_type").toString());
+                if (jSONObject.has("input_" + (i + 1) + "_label")
+                        && jSONObject.has("input_" + (i + 1) + "_type")) {
+                    String label = jSONObject.getString("input_" + (i + 1) + "_label");
+                    JSONObject type = new JSONObject(jSONObject.get("input_" + (i + 1) + "_type").toString());
                     
                     JSONObject inputData = new JSONObject();
                     inputData.put("label", label);
@@ -72,11 +77,26 @@ public class MultiPaymentBillerHandler extends MessageHandler{
                 }
             }
             billerData.put("input", input);
-            return billerData;
-        }).forEachOrdered(billerData -> {
-            detail.put(billerData);
+            
+            if(tModuleMap.containsKey(tModuleCode)){
+                tModuleMap.get(tModuleCode).add(billerData);
+            }else{
+                List<JSONObject> list = new ArrayList<>();
+                list.add(billerData);
+                tModuleMap.put(tModuleCode, list);
+            }
         });
-
+        
+        tModuleMap.keySet().forEach(module -> {
+            JSONObject tresult = new JSONObject();
+            JSONArray tListBiller = new JSONArray(tModuleMap.get(module));
+            
+            tresult.put("module", module);
+            tresult.put("billers", tListBiller);
+            
+            detail.put(tresult);
+        });
+        
         resp.put("data", detail);
         return resp.toString();
     }

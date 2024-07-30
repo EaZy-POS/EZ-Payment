@@ -207,15 +207,20 @@ public class CentralController {
         String tSQL = "DELETE FROM dp_pre_demon WHERE id = '" + pID + "'";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-
+    
     public LinkedList<JSONObject> getMultiPaymentBillerList() throws SQLException {
+        return getMultiPaymentBillerList(null);
+    }
+
+    public LinkedList<JSONObject> getMultiPaymentBillerList(String moduleCode) throws SQLException {
         String tSQL = "SELECT biller, biller_name, "
                 + "input_1_label, input_1_type, "
                 + "input_2_label, input_2_type, "
                 + "input_3_label, input_3_type, "
-                + "details, status "
+                + "details, status, module_code "
                 + "FROM dp_mp_biller "
-                + "ORDER BY biller ASC";
+                + (moduleCode == null ? "" : "WHERE module_code = '" + moduleCode + "' ")
+                        + "ORDER BY biller ASC";
 
         LinkedList<JSONObject> data = DB.executeQuery(CommonHanlder.dbName, tSQL);
 
@@ -225,7 +230,7 @@ public class CentralController {
 
         return new LinkedList<>();
     }
-
+    
     public int validateProviderData(String provider, boolean isfirsttime) throws SQLException {
         String tSQL = "SELECT id FROM dp_vcr_provider WHERE provider_name = '" + provider + "'";
         LinkedList<JSONObject> data = DB.executeQuery(CommonHanlder.dbName, tSQL);
@@ -436,7 +441,7 @@ public class CentralController {
                 + ")";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public void updateMitraDetail(int id, JSONObject request) throws SQLException {
 
         String mitraName = request.getString(Fields.mitra_name.name());
@@ -551,7 +556,7 @@ public class CentralController {
                 + "WHERE id = '" + clientid + "'";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public void blockMitra(int clientid) throws SQLException {
         String tSQL = "UPDATE ap_mitra SET status =2, deleted_at = NOW(), deleted_by = 'Admin' "
                 + "WHERE id = '" + clientid + "'";
