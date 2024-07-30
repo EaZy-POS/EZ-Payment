@@ -77,7 +77,6 @@ public class AuthController {
     }
     
     public boolean isValidClientModule(String pMitra, String pProduct, String path) {
-
         try {
             String tQuery = "SELECT am.mitra_id, cmm.adm_fee, dm.module_id, dm.module_name "
                     + "FROM ctl_module_mitra cmm "
@@ -97,6 +96,99 @@ public class AuthController {
             }
         } catch (SQLException ex) {
             throw new ServiceException(RC.ERROR_DATABASE, "[SQLException] Failed to get valid client module", ex);
+        }
+
+        return false;
+    }
+    
+    public boolean isValidGeneralPaymentBillerModule(String pBiller) {
+        return isValidMultiPaymentBillerModule(pBiller, "MTP");
+    }
+    
+    public boolean isValidEwalletBillerModule(String pBiller) {
+        return isValidMultiPaymentBillerModule(pBiller, "EWL");
+    }
+    
+    public boolean isValidTelkomBillerModule(String pBiller) {
+        return isValidMultiPaymentBillerModule(pBiller, "TKM");
+    }
+    
+    private boolean isValidMultiPaymentBillerModule(String pBiller, String pModuleCode) {
+        try {
+            QueryBuilder builder = new QueryBuilder("dp_mp_biller", QueryType.SELECT);
+            builder.addEntry("id", "biller", "biller_name", "module_code");
+            builder.addWhereValue(
+                    new WhereField("module_code", pModuleCode, Operator.EQUALS),
+                    new WhereField("status", "1", Operator.EQUALS, QueryConditional.AND),
+                    new WhereField("LOWER(biller)", pBiller, Operator.EQUALS, QueryConditional.AND)
+            );
+
+            LinkedList<JSONObject> tResult = DB.executeQuery(AuthHandler.dbName, builder);
+            if (tResult != null) {
+                return tResult.size() > 0;
+            }
+        } catch (SQLException ex) {
+            throw new ServiceException(RC.ERROR_DATABASE, "[SQLException] Failed to get mp biller", ex);
+        }
+
+        return false;
+    }
+    
+    public boolean isValidVoucherProduct(String pVoucherID) {
+        try {
+            QueryBuilder builder = new QueryBuilder("dp_vcr_product", QueryType.SELECT);
+            builder.addEntry("id", "voucher_id", "voucher_name");
+            builder.addWhereValue(
+                    new WhereField("status", "1", Operator.EQUALS),
+                    new WhereField("LOWER(voucher_id)", pVoucherID, Operator.EQUALS, QueryConditional.AND)
+            );
+
+            LinkedList<JSONObject> tResult = DB.executeQuery(AuthHandler.dbName, builder);
+            if (tResult != null) {
+                return tResult.size() > 0;
+            }
+        } catch (SQLException ex) {
+            throw new ServiceException(RC.ERROR_DATABASE, "[SQLException] Failed to get voucher product", ex);
+        }
+
+        return false;
+    }
+    
+    public boolean isValidPDAMBiller(String pBiller) {
+        try {
+            QueryBuilder builder = new QueryBuilder("dp_pam_biller", QueryType.SELECT);
+            builder.addEntry("id", "biller", "biller_name");
+            builder.addWhereValue(
+                    new WhereField("status", "1", Operator.EQUALS),
+                    new WhereField("LOWER(biller)", pBiller, Operator.EQUALS, QueryConditional.AND)
+            );
+
+            LinkedList<JSONObject> tResult = DB.executeQuery(AuthHandler.dbName, builder);
+            if (tResult != null) {
+                return tResult.size() > 0;
+            }
+        } catch (SQLException ex) {
+            throw new ServiceException(RC.ERROR_DATABASE, "[SQLException] Failed to get pdam biller", ex);
+        }
+
+        return false;
+    }
+    
+    public boolean isValidPrepaidDenom(String pDenom) {
+        try {
+            QueryBuilder builder = new QueryBuilder("dp_pre_demon", QueryType.SELECT);
+            builder.addEntry("id", "denom", "description");
+            builder.addWhereValue(
+                    new WhereField("status", "1", Operator.EQUALS),
+                    new WhereField("denom", pDenom, Operator.EQUALS, QueryConditional.AND)
+            );
+
+            LinkedList<JSONObject> tResult = DB.executeQuery(AuthHandler.dbName, builder);
+            if (tResult != null) {
+                return tResult.size() > 0;
+            }
+        } catch (SQLException ex) {
+            throw new ServiceException(RC.ERROR_DATABASE, "[SQLException] Failed to get pdam biller", ex);
         }
 
         return false;

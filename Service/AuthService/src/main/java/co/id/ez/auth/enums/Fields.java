@@ -10,5 +10,5 @@ package co.id.ez.auth.enums;
  * @author Lutfi
  */
 public enum Fields {
-    client_id, secret_key, user_id, password, module_id, path
+    client_id, secret_key, user_id, password, module_id, path, product
 }

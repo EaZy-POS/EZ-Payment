@@ -27,7 +27,7 @@ import java.util.UUID;
  * @author Lutfi
  */
 public abstract class AuthHandler {
-    
+
     public static String dbName = "auth-service";
     protected String corelation_id;
     protected final AuthController authController = new AuthController();
@@ -39,7 +39,7 @@ public abstract class AuthHandler {
             String tRequest = "";
             String tUrlInfo = pBodyMessage;
             try {
-                tRequest = URLDecoder.decode(tUrlInfo, 
+                tRequest = URLDecoder.decode(tUrlInfo,
                         StandardCharsets.UTF_8.toString()).replace("\n", "").replace("\t", " ").replace("\r", "");
                 LogService.getInstance(this).stream()
                         .log("[" + RequiredFields.AUTH.name() + " REQUEST ]:(" + corelation_id + "): " + tRequest);
@@ -49,13 +49,13 @@ public abstract class AuthHandler {
 
             tJsonRequest = new JSONObject(tRequest);
             validateMessage(tJsonRequest);
-            
+
             JSONObject tMitraCred = authController.getCredential(tJsonRequest);
             validateCredential(tJsonRequest, tMitraCred);
-            
+
             tJsonRequest.put("rc", "0000");
             tJsonRequest.put("rcm", "SUCCESS");
-            
+
             LogService.getInstance(this).stream()
                     .log("[" + RequiredFields.AUTH.name() + " RESPONSE ]:(" + corelation_id + "): " + tJsonRequest);
             return constructHttpResponse(RC.SUCCESS, tJsonRequest);
@@ -77,10 +77,10 @@ public abstract class AuthHandler {
             if (tRC.equals(RC.ERROR_TRANSACTION_FAILED_FROM_VENDING)) {
                 tMsg = "External Server Error";
             }
-            
+
             tJsonRequest.put("rc", tRC.getResponseCodeString());
             tJsonRequest.put("rcm", tMsg);
-            
+
             LogService.getInstance(this).stream()
                     .log("[" + RequiredFields.AUTH.name() + " RESPONSE ]:(" + corelation_id + "): " + tJsonRequest.toString());
             return constructHttpResponse(tRC, tJsonRequest);
@@ -92,7 +92,7 @@ public abstract class AuthHandler {
 
             tJsonRequest.put("rc", tRC.getResponseCodeString());
             tJsonRequest.put("rcm", tMsg);
-            
+
             LogService.getInstance(this).stream()
                     .log("[" + RequiredFields.AUTH.name() + " RESPONSE ]:(" + corelation_id + "): " + tJsonRequest.toString());
             return constructHttpResponse(tRC, tJsonRequest);
@@ -102,19 +102,19 @@ public abstract class AuthHandler {
     private void validateMessage(JSONObject pRequest) {
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate mandatory field");
         List<String> tList = new ArrayList<>();
-        
+
         RequiredFields.AUTH.getFields().stream().filter(field -> (!pRequest.has(field))).forEachOrdered(field -> {
             tList.add(field);
         });
-        
-        if(tList.size()>0){
-            throw new ServiceException(RC.ERROR_INVALID_MESSAGE, "Invalid mandatory field. " + tList.toString() );
+
+        if (tList.size() > 0) {
+            throw new ServiceException(RC.ERROR_INVALID_MESSAGE, "Invalid mandatory field. " + tList.toString());
         }
-        
+
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate mandatory field (success)");
     }
-    
-    private void validateCredential(final JSONObject pRequest, JSONObject pCredData){
+
+    private void validateCredential(final JSONObject pRequest, JSONObject pCredData) {
         String tValidate = pCredData.getString("cred_access");
         String tKey = pRequest.getString(Fields.secret_key.name());
         String tUId = pRequest.getString(Fields.user_id.name());
@@ -122,33 +122,141 @@ public abstract class AuthHandler {
         String tClientID = pRequest.getString(Fields.client_id.name());
         String tModuleID = pRequest.getString(Fields.module_id.name());
         String tPath = pRequest.has(Fields.path.name()) ? pRequest.getString(Fields.path.name()) : null;
-        
+        String tProduct = pRequest.has(Fields.product.name()) ? pRequest.getString(Fields.product.name()) : null;
+
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate module");
         if (!authController.isValidModule(tModuleID)) {
             throw new ServiceException(RC.ERROR_PRODUCT_NOT_AVAILABLE, "Unregister Module [" + tModuleID + "]");
         }
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate module (success)");
-        
+
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate client access");
         if (!authController.isValidClientModule(tClientID, tModuleID, tPath)) {
             throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid access product client");
         }
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate client access (success)");
-        
+
+        if (tProduct != null) {
+            validateRightProductAccess(tModuleID, tProduct);
+        }
+
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate credential");
-        if(!EncryptionService.encryptor().validateKey(tValidate, tKey, tClientID, tUId, tPass)){
+        if (!EncryptionService.encryptor().validateKey(tValidate, tKey, tClientID, tUId, tPass)) {
             throw new ServiceException(RC.ERROR_UNREGISTERED_PARTNER_CENTRAL, "Invalid access client [" + tClientID + "]");
         }
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate credential (Success)");
-        
+
         pCredData.remove("cred_access");
         pCredData.remove("mitra_access");
         pCredData.remove("mitra_id");
-        
+
         pRequest.put("detail", pCredData);
-        
+
+    }
+
+    private void validateRightProductAccess(String pModule, String pProduct) {
+        LogService.getInstance(this)
+                .trace()
+                .log("(" + corelation_id + ") Before validate rigth client product access [" + pModule + ", " + pProduct + "]");
+
+        switch (pModule.toUpperCase()) {
+            case "MP":
+                validateRightGeneralPaymentProductAccess(pProduct);
+                break;
+            case "EWALLET":
+                validateRightEwalletProductAccess(pProduct);
+                break;
+            case "TELKOM":
+                validateRightTelkomProductAccess(pProduct);
+                break;
+            case "ISI":
+                validateRightVoucherProductAccess(pProduct);
+                break;
+            case "PREPAID":
+                validateRightPrepaidDenomAccess(pProduct);
+                break;
+            case "PDAM":
+                validateRightPDAMBillerAccess(pProduct);
+                break;
+
+        }
+        LogService.getInstance(this)
+                .trace()
+                .log("(" + corelation_id + ") After validate right client product access [" + pModule + ", " + pProduct + "] (success)");
+    }
+
+    private void validateRightGeneralPaymentProductAccess(String pBiller) {
+        LogService.getInstance(this)
+                .trace()
+                .log("(" + corelation_id + ") After validate right Multi Payment product access [" + pBiller + "] (success)");
+        if (!authController.isValidGeneralPaymentBillerModule(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Multi Payment product access [" + pBiller + "] (success)");
+    }
+
+    private void validateRightEwalletProductAccess(String pBiller) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Ewallet product access [" + pBiller + "] (success)");
+        if (!authController.isValidEwalletBillerModule(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Ewallet product access [" + pBiller + "] (success)");
+    }
+
+    private void validateRightTelkomProductAccess(String pBiller) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Telkom product access [" + pBiller + "] (success)");
+        if (!authController.isValidTelkomBillerModule(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Telkom product access [" + pBiller + "] (success)");
     }
     
+    private void validateRightVoucherProductAccess(String pVoucherID) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right voucher product access [" + pVoucherID + "] (success)");
+        if (!authController.isValidVoucherProduct(pVoucherID)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid voucherid " + pVoucherID);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Voucher product access [" + pVoucherID + "] (success)");
+    }
+    
+    private void validateRightPrepaidDenomAccess(String pDenom) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right prepaid denom access [" + pDenom + "] (success)");
+        if (!authController.isValidPrepaidDenom(pDenom)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid denom " + pDenom);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right prepaid denom access [" + pDenom + "] (success)");
+    }
+    
+    private void validateRightPDAMBillerAccess(String pBiller) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right pdam biller access [" + pBiller + "] (success)");
+        if (!authController.isValidPDAMBiller(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right pdam biller access [" + pBiller + "] (success)");
+    }
+
     private Response constructHttpResponse(RC responseCode, JSONObject pResponse) {
         Response.Status tStatus;
         JSONObject tResponse;
@@ -214,5 +322,5 @@ public abstract class AuthHandler {
     private void createCorelationID() {
         corelation_id = "id_" + UUID.randomUUID().toString().replace("-", "").substring(0, 15);
     }
-    
+
 }
