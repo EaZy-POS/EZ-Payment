@@ -71,13 +71,18 @@ public class CentralController {
     }
 
     public LinkedList<JSONObject> getMultiPaymentBillerList() throws SQLException {
+        return getMultiPaymentBillerList(null);
+    }
+
+    public LinkedList<JSONObject> getMultiPaymentBillerList(String moduleCode) throws SQLException {
         String tSQL = "SELECT biller, biller_name, "
                 + "input_1_label, input_1_type, "
                 + "input_2_label, input_2_type, "
                 + "input_3_label, input_3_type, "
-                + "details, status "
+                + "details, status, module_code "
                 + "FROM dp_mp_biller "
-                + "ORDER BY biller ASC";
+                + (moduleCode == null ? "" : "WHERE module_code = '" + moduleCode + "' ")
+                        + "ORDER BY biller ASC";
 
         LinkedList<JSONObject> data = DB.executeQuery(CommonHanlder.dbName, tSQL);
 
@@ -164,12 +169,12 @@ public class CentralController {
 
         return null;
     }
-    
+
     public void deleteMitra(String clientid) throws SQLException {
         String tSQL = "DELETE FROM ap_mitra WHERE mitra_id = '" + clientid + "'";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public void activateMitra(int clientid) throws SQLException {
         String tSQL = "UPDATE ap_mitra SET status =1, updated_at = NOW(), updated_by = 'Admin' "
                 + "WHERE mitra_id = '" + clientid + "'";
@@ -182,7 +187,7 @@ public class CentralController {
                 + "VALUES (NOW(), '" + id + "', '" + access + "', 1)";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public void deleteMitraAccess(int id) throws SQLException {
         String tSQL = "DELETE FROM ap_mitra_access "
                 + "WHERE mitra_id = '" + id + "'";
@@ -223,7 +228,7 @@ public class CentralController {
 
         return null;
     }
-    
+
     public String getMitraAccessKey(String pClientID) throws SQLException {
         String tSQL = "SELECT mitra_access "
                 + "FROM `ap_mitra_access` "
@@ -237,9 +242,9 @@ public class CentralController {
             }
         }
 
-        throw new ServiceException(RC.ERROR_UNREGISTERED_ACCOUNT, "Invalid client id "+ pClientID);
+        throw new ServiceException(RC.ERROR_UNREGISTERED_ACCOUNT, "Invalid client id " + pClientID);
     }
-    
+
     public void deleteMitraCred(int id) throws SQLException {
         String tSQL = "DELETE FROM ap_mitra_cred "
                 + "WHERE mitra_id = '" + id + "' ";
@@ -252,7 +257,7 @@ public class CentralController {
                 + "VALUES (NOW(), '" + credid + "', '" + access + "')";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public void deleteMitraCredAccess(int credid) throws SQLException {
         String tSQL = "DELETE ap_mitra_cred_access "
                 + "WHERE cred_id = '" + credid + "'";
@@ -301,28 +306,28 @@ public class CentralController {
                 + ")";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
-    public void insertModuleMitra(int mitraid) throws SQLException{
+
+    public void insertModuleMitra(int mitraid) throws SQLException {
         String tSQL = "INSERT INTO ctl_module_mitra (created_at, created_by, module_id, mitra_id, status) "
                 + "SELECT NOW(), 'Admin', id, '" + mitraid + "', 1 from dp_module WHERE module_id != 'DEP'";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
-    public void deleteModuleMitra(int mitraid) throws SQLException{
+
+    public void deleteModuleMitra(int mitraid) throws SQLException {
         String tSQL = "DELETE FROM ctl_module_mitra WHERE mitra_id = '" + mitraid + "'";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public void deleteMitraDetail(int id) throws SQLException {
         String tSQL = "DELETE FROM ap_mitra_detail "
                 + "WHERE mitra_id = '" + id + "'";
         DB.executeUpdate(CommonHanlder.dbName, tSQL);
     }
-    
+
     public JSONObject getAppUpdate() throws SQLException {
-        
+
         JSONObject tResult = new JSONObject();
-        
+
         String tSQL = "SELECT "
                 + "ap_version_update.app_version as version, "
                 + "update_detail as info, "
@@ -337,24 +342,24 @@ public class CentralController {
                 + "ON ap_version_update_detail.app_version = ap_version_update.app_version "
                 + "WHERE ap_version_update.`status` = 1 "
                 + "ORDER BY ap_version_update.created_at DESC";
-        
+
         LinkedList<JSONObject> data = DB.executeQuery(CommonHanlder.dbName, tSQL);
 
         if (data != null && data.size() > 0) {
             JSONArray tUpdate = new JSONArray();
             String tVersion = "", tType = "";
-            
+
             for (int i = 0; i < data.size(); i++) {
                 JSONObject dataUpdate = data.get(i);
-                if(i == 0){
+                if (i == 0) {
                     tVersion = dataUpdate.get("version").toString().trim();
                     tType = dataUpdate.get("type").toString().trim();
-                }else{
-                    if(!dataUpdate.get("version").toString().trim().equalsIgnoreCase(tVersion)){
+                } else {
+                    if (!dataUpdate.get("version").toString().trim().equalsIgnoreCase(tVersion)) {
                         break;
                     }
                 }
-                
+
                 JSONObject detail = new JSONObject();
                 detail.put("sequence", dataUpdate.get("sequence"));
                 detail.put("description", dataUpdate.getString("info"));
@@ -362,23 +367,23 @@ public class CentralController {
                 detail.put("target", dataUpdate.getString("update_file_target"));
                 detail.put("type", dataUpdate.getString("update_type"));
                 detail.put("action", dataUpdate.getString("update_file_type"));
-                
+
                 tUpdate.put(detail);
             }
-            
+
             tResult.put("version", tVersion);
             tResult.put("type", tType);
             tResult.put("update", tUpdate);
             tResult.put("rc", "0000");
             tResult.put("rcm", "Sukses");
-            
+
             return tResult;
         }
 
         tResult.put("rc", "0014");
         tResult.put("rcm", "No update");
-        
+
         return null;
     }
-    
+
 }
