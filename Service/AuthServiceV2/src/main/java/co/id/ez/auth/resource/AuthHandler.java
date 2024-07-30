@@ -129,9 +129,9 @@ public abstract class AuthHandler {
                                 ),
                         cServiceKey
                 );
-        
-        String tUId = 
-                EncryptionService
+
+        String tUId
+                = EncryptionService
                         .encryptor()
                         .Base64Decrypt(
                                 pRequest.getString(Fields.user_id.name())
@@ -146,28 +146,29 @@ public abstract class AuthHandler {
                                 ),
                         cServiceKey
                 );
-        
+
         String tEncPass = EncryptionService.encryptor().Base64Encrypt(
                 EncryptionService.encryptor().encrypt(tPass, tKey)
         );
-        
+
         String tClientID = pRequest.getString(Fields.client_id.name());
         String tModuleID = pRequest.getString(Fields.module_id.name());
         String tPath = pRequest.has(Fields.path.name())
                 ? pRequest.getString(Fields.path.name())
                 : null;
+        String tProduct = pRequest.has(Fields.product.name()) ? pRequest.getString(Fields.product.name()) : null;
 
         String tStatus = pCredData.getString("status");
         boolean isActive = false;
-        
-        if(tStatus.equalsIgnoreCase("active")){
+
+        if (tStatus.equalsIgnoreCase("active")) {
             isActive = true;
-        }else if(tStatus.equalsIgnoreCase("inactive")){
+        } else if (tStatus.equalsIgnoreCase("inactive")) {
             isActive = false;
-        }else{
+        } else {
             throw new ServiceException(RC.ERROR_UNREGISTERED_MERCHANT_TYPE, "Unregister mitra");
         }
-        
+
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate module");
         if (!authController.isValidModule(tModuleID)) {
             throw new ServiceException(RC.ERROR_PRODUCT_NOT_AVAILABLE, "Unregister Module [" + tModuleID + "]");
@@ -180,12 +181,16 @@ public abstract class AuthHandler {
         }
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate client access (success)");
 
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") Key: "+ tKey);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") Pass: "+ tPass);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") CLien ID: "+ tClientID);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") User: "+ tUId);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") Pass: "+ tEncPass);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") Val access: "+ tValidate);
+        if (tProduct != null) {
+            validateRightProductAccess(tModuleID, tProduct);
+        }
+        
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") Key: " + tKey);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") Pass: " + tPass);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") CLien ID: " + tClientID);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") User: " + tUId);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") Pass: " + tEncPass);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") Val access: " + tValidate);
         LogService.getInstance(this).trace()
                 .log("(" + corelation_id + ") current access: "
                         + EncryptionService
@@ -193,18 +198,17 @@ public abstract class AuthHandler {
                                 .encrypt(
                                         tKey, tClientID, tUId, tEncPass)
                 );
-        
+
         LogService.getInstance(this).trace().log("(" + corelation_id + ") Before validate credential");
         if (!EncryptionService
                 .encryptor()
                 .validateKey(
-                        tValidate, 
-                        tKey, 
-                        tClientID, 
-                        tUId, 
+                        tValidate,
+                        tKey,
+                        tClientID,
+                        tUId,
                         tEncPass
-                )) 
-        {
+                )) {
             throw new ServiceException(RC.ERROR_UNREGISTERED_PARTNER_CENTRAL, "Invalid access client [" + tClientID + "]");
         }
         LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate credential (Success)");
@@ -238,7 +242,7 @@ public abstract class AuthHandler {
                 .concat(tDate)
                 .concat(":")
                 .concat(tClientID);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") Hash target: "+ tHashTarget);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") Hash target: " + tHashTarget);
         String tValidSignature = EncryptionService.encryptor()
                 .hashSHA256(
                         EncryptionService
@@ -249,14 +253,117 @@ public abstract class AuthHandler {
                                 .concat(tCLientKey)
                                 .concat("#")
                 );
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") Sign: "+ tSign);
-        LogService.getInstance(this).trace().log("(" + corelation_id + ") valid Sign: "+ tValidSignature);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") Sign: " + tSign);
+        LogService.getInstance(this).trace().log("(" + corelation_id + ") valid Sign: " + tValidSignature);
         if (!tSign.equals(tValidSignature)) {
             LogService.getInstance(this).trace().log("(" + corelation_id + ") After validate signature (failed)");
             pRequest.remove("detail");
             throw new ServiceException(RC.ERROR_INVALID_HASHCODE, "Invalid signature");
         }
         LogService.getInstance(this).trace().log("After validate signature (success)");
+    }
+    
+    private void validateRightProductAccess(String pModule, String pProduct) {
+        LogService.getInstance(this)
+                .trace()
+                .log("(" + corelation_id + ") Before validate rigth client product access [" + pModule + ", " + pProduct + "]");
+
+        switch (pModule.toUpperCase()) {
+            case "MP":
+                validateRightGeneralPaymentProductAccess(pProduct);
+                break;
+            case "EWALLET":
+                validateRightEwalletProductAccess(pProduct);
+                break;
+            case "TELKOM":
+                validateRightTelkomProductAccess(pProduct);
+                break;
+            case "ISI":
+                validateRightVoucherProductAccess(pProduct);
+                break;
+            case "PREPAID":
+                validateRightPrepaidDenomAccess(pProduct);
+                break;
+            case "PDAM":
+                validateRightPDAMBillerAccess(pProduct);
+                break;
+
+        }
+        LogService.getInstance(this)
+                .trace()
+                .log("(" + corelation_id + ") After validate right client product access [" + pModule + ", " + pProduct + "] (success)");
+    }
+
+    private void validateRightGeneralPaymentProductAccess(String pBiller) {
+        LogService.getInstance(this)
+                .trace()
+                .log("(" + corelation_id + ") After validate right Multi Payment product access [" + pBiller + "] (success)");
+        if (!authController.isValidGeneralPaymentBillerModule(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Multi Payment product access [" + pBiller + "] (success)");
+    }
+
+    private void validateRightEwalletProductAccess(String pBiller) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Ewallet product access [" + pBiller + "] (success)");
+        if (!authController.isValidEwalletBillerModule(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Ewallet product access [" + pBiller + "] (success)");
+    }
+
+    private void validateRightTelkomProductAccess(String pBiller) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Telkom product access [" + pBiller + "] (success)");
+        if (!authController.isValidTelkomBillerModule(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Telkom product access [" + pBiller + "] (success)");
+    }
+    
+    private void validateRightVoucherProductAccess(String pVoucherID) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right voucher product access [" + pVoucherID + "] (success)");
+        if (!authController.isValidVoucherProduct(pVoucherID)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid voucherid " + pVoucherID);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right Voucher product access [" + pVoucherID + "] (success)");
+    }
+    
+    private void validateRightPrepaidDenomAccess(String pDenom) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right prepaid denom access [" + pDenom + "] (success)");
+        if (!authController.isValidPrepaidDenom(pDenom)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid denom " + pDenom);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right prepaid denom access [" + pDenom + "] (success)");
+    }
+    
+    private void validateRightPDAMBillerAccess(String pBiller) {
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right pdam biller access [" + pBiller + "] (success)");
+        if (!authController.isValidPDAMBiller(pBiller)) {
+            throw new ServiceException(RC.ERROR_BLOCKED_TERMINAL, "Invalid biller " + pBiller);
+        }
+        LogService
+                .getInstance(this)
+                .trace().log("(" + corelation_id + ") After validate right pdam biller access [" + pBiller + "] (success)");
     }
 
     private Response constructHttpResponse(RC responseCode, JSONObject pResponse) {
